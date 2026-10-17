@@ -34,16 +34,16 @@ jobs:
       # Empty elsewhere. The value must be identical on restore, build and test.
       COVERAGE_PROPS: ${{ matrix.os == 'ubuntu-latest' && format('-p:CustomAfterMicrosoftCommonProps={0}/build/ci/coverage.props', github.workspace) || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so the format check can diff against the PR base.
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
@@ -74,7 +74,7 @@ jobs:
 
       - name: Generate coverage report
         if: matrix.os == 'ubuntu-latest' && always()
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.5.11
         with:
           reports: TestResults/**/coverage.cobertura.xml
           targetdir: coverage-report
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage-report
@@ -100,7 +100,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.os }}
           path: TestResults
@@ -111,11 +111,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 

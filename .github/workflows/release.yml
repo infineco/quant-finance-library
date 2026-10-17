@@ -33,13 +33,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
           # MinVer reads the tag and counts commits since it: it needs the full history.
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -89,7 +89,7 @@ jobs:
           ls -l artifacts/packages
 
       - name: Upload packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packages
           path: artifacts/packages
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: TestResults
@@ -122,12 +122,12 @@ jobs:
         run: |
           echo "::notice::The NUGET_USER repository variable is not set, so nothing was pushed to nuget.org. The packages are attached to this run and to the GitHub Release."
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         if: env.NUGET_USER != ''
         with:
           dotnet-version: 8.0.x
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: env.NUGET_USER != ''
         with:
           name: packages
@@ -161,9 +161,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: packages
           path: packages
