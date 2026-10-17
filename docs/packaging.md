@@ -107,14 +107,20 @@ it from another project, add `artifacts/packages` as a local NuGet source.
    - checks that the tag is a version, restores, builds and tests;
    - packs, and checks that every package carries the tag's version;
    - uploads the packages as a workflow artifact (`packages`);
-   - pushes the `.nupkg` and `.snupkg` files to nuget.org with `--skip-duplicate`, when the `NUGET_API_KEY` secret
-     exists; without it the job ends with a notice and pushes nothing;
+   - pushes the `.nupkg` and `.snupkg` files to nuget.org with `--skip-duplicate` through
+     [NuGet trusted publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing), when the `NUGET_USER`
+     repository variable is set; without it the job ends with a notice and pushes nothing;
    - creates the GitHub Release for the tag with the changelog section and the packages attached (a tag with a
      hyphen, such as `v0.2.0-rc.1`, is marked pre-release).
 5. Check that the packages appear on nuget.org (indexing takes a few minutes) and that the Release page reads well.
 
-Setup, once: create a nuget.org API key limited to the `InFine.QuantFinance.*` glob with push permission, and store it as
-the repository secret `NUGET_API_KEY`. For a first release the id prefix must be reserved on nuget.org so that the
+Setup, once (no API key is stored anywhere): on nuget.org, *your profile → Trusted Publishing*, add a policy with
+repository owner `infineco`, repository `quant-finance-library`, workflow file `release.yml` and no environment; then set
+the repository variable `NUGET_USER` to the nuget.org profile name that owns the policy
+(`gh variable set NUGET_USER -R infineco/quant-finance-library`). Each run exchanges the job's GitHub OIDC token for a
+one-hour API key. To publish a tag that was released before this setup, start the workflow by hand
+(*Actions → Release → Run workflow*, input `v1.15.1`): it builds that tag and pushes it, without touching the GitHub
+Release. For a first release the id prefix must be reserved on nuget.org so that the
 packages carry the verified-owner mark. A failed run can be re-run: pushes skip versions that already exist; the GitHub
 Release step fails if the release exists, so delete the release (not the tag) before re-running that job.
 
