@@ -38,7 +38,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, gpu]
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           clean: true
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gpu-test-results
           path: TestResults
@@ -83,7 +83,7 @@ jobs:
 
       - name: Upload CUDA satellite
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cuda-satellite
           path: artifacts/cuda
