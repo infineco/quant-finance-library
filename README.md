@@ -9,10 +9,9 @@ very same code to CUDA kernels for NVIDIA GPUs.
 [![CodeQL](https://github.com/infineco/quant-finance-library/actions/workflows/codeql.yml/badge.svg)](https://github.com/infineco/quant-finance-library/actions/workflows/codeql.yml)
 [![GPU (nightly)](https://github.com/infineco/quant-finance-library/actions/workflows/gpu.yml/badge.svg)](docs/gpu-ci.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![NuGet: coming soon](https://img.shields.io/badge/NuGet-coming%20soon-lightgrey)](https://github.com/infineco/quant-finance-library/releases)
+[![NuGet](https://img.shields.io/nuget/v/InFine.QuantFinance.ClosedForm.svg?label=NuGet)](https://www.nuget.org/packages?q=InFine.QuantFinance)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://infineco.github.io/quant-finance-library/)
 
-<!-- Maintainers: replace the NuGet badge with the live shields.io NuGet badge once the packages are on nuget.org. -->
 
 ## Why this library exists
 
@@ -132,9 +131,8 @@ the function reference: [docs/excel.md](docs/excel.md).
 
 Fourteen libraries are packaged as `InFine.QuantFinance.<Name>` (`Arithmetic`, `Scheduling`, `Numerics`, `Random`,
 `ClosedForm`, `Models`, `Payoffs`, `LongstaffSchwartz`, `Market`, `Volatility`, `Risk`, `Portfolio`, `TimeSeries`,
-`Backtesting`), versioned from git tags. The `.nupkg` files of each release are attached to its
-[GitHub release](https://github.com/infineco/quant-finance-library/releases); publication on nuget.org is coming.
-Once there:
+`Backtesting`), versioned from git tags and published on [nuget.org](https://www.nuget.org/packages?q=InFine.QuantFinance) (the
+`.nupkg` files are also attached to each [GitHub release](https://github.com/infineco/quant-finance-library/releases)):
 
 ```sh
 dotnet add package InFine.QuantFinance.ClosedForm
