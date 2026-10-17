@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Builds the CUDA satellite of the library with Hybridizer. Without -p:HybridizeCuda=true this project only copies the
+    kernel assemblies to its output and does nothing else, so the solution builds on any OS (CI included).
+
+      dotnet build InFine.QuantFinance.Cuda/InFine.QuantFinance.Cuda.csproj -c Release -p:HybridizeCuda=true
+
+    produces bin/<Configuration>/net8.0/InFine.QuantFinance_CUDA.dll and copies it to artifacts/cuda/, where the test
+    and benchmark projects pick it up (Directory.Build.targets). The device code inside is compiled for the GPU of the
+    build machine. See build/hybridizer/Hybridizer.targets and docs/verification-windows-gpu.md.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!-- Hybridizer resolves references only from the folder of each input assembly: copy every dependency there. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <CudaSatelliteName>InFine.QuantFinance_CUDA</CudaSatelliteName>
+    <CudaArtifactsDir>$(MSBuildThisFileDirectory)..\artifacts\cuda\</CudaArtifactsDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Scheduling\InFine.QuantFinance.Scheduling.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Arithmetic\InFine.QuantFinance.Arithmetic.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Random\InFine.QuantFinance.Random.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Models\InFine.QuantFinance.Models.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Payoffs\InFine.QuantFinance.Payoffs.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Backtesting\InFine.QuantFinance.Backtesting.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.LongstaffSchwartz\InFine.QuantFinance.LongstaffSchwartz.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Assemblies whose kernels are hybridized, dependencies first (Hybridizer 7.5 requires that order). -->
+    <HybridizedAssembly Include="Scheduling;Numerics;Arithmetic;ClosedForm;Random;Models;Payoffs;Risk;Backtesting;LongstaffSchwartz" />
+  </ItemGroup>
+
+  <Import Project="..\build\hybridizer\Hybridizer.targets" />
+
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Generates the example workbooks under samples/excel from code, so they stay reviewable, reproducible and in step
+    with the add-in's QF.* function names. Not shipped; run with dotnet run, project tools/InFine.QuantFinance.ExcelSamples.
+    The workbooks are written with ClosedXML (no charts API, so ChartInjector adds the charts to the saved package).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <RootNamespace>InFine.QuantFinance.ExcelSamples</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The static market data of the samples (smile prices) is computed with the library's own pricer. -->
+    <ProjectReference Include="..\..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+  </ItemGroup>
+</Project>

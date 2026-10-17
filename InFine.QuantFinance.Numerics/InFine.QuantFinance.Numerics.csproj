@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Allocation-free numerical kernels (interpolation, discount-curve evaluation) and host-side optimisation and linear algebra: Levenberg-Marquardt, BFGS, Cholesky, symmetric eigen-decomposition, nearest correlation matrix.</Description>
+  </PropertyGroup>
+
+  <!--
+    Allocation-free numerical kernels on plain doubles and arrays, shared by the host-side market model
+    (InFine.QuantFinance.Market) and the kernel-side models (InFine.QuantFinance.Models). Methods here are written
+    under the kernel rules (no allocation, no exceptions, no LINQ, no virtual calls) so that Hybridizer can transform
+    them when a [Kernel] method calls them; Hybridizer follows explicit calls, so they need no attribute. This project
+    must NOT reference Hybridizer: the market model depends on it and has to load on any host.
+    Exception: the Levenberg-Marquardt least-squares solver (LevenbergMarquardt*.cs), the BFGS minimiser and finite
+    differences (Bfgs.cs, FiniteDifferences.cs) and the dense linear algebra
+    (Matrix, SymmetricEigen, Cholesky, NearestMatrix) are host-only code; they validate with exceptions and allocate
+    freely, so never call them from a kernel.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Numerics</RootNamespace>
+  </PropertyGroup>
+
+</Project>

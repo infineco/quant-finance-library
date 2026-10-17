@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Random\InFine.QuantFinance.Random.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Models\InFine.QuantFinance.Models.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Payoffs\InFine.QuantFinance.Payoffs.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.LongstaffSchwartz\InFine.QuantFinance.LongstaffSchwartz.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Scheduling\InFine.QuantFinance.Scheduling.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Backtesting\InFine.QuantFinance.Backtesting.csproj" />
+  </ItemGroup>
+
+</Project>

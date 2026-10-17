@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Host-side market objects: dates, holiday calendars, day counters, schedules, curve instruments and bootstrapped yield curves.</Description>
+  </PropertyGroup>
+
+  <!--
+    Host-side market object model (dates, calendars, conventions, curves...). Plain modern C#:
+    immutable types, nullable reference types, no allocation constraints. This project is NOT kernel
+    code and must not reference Hybridizer.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Market</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+  </ItemGroup>
+
+</Project>

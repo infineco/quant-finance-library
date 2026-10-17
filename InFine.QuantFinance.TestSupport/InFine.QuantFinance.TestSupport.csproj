@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+    <PackageReference Include="xunit.extensibility.core" />
+  </ItemGroup>
+
+</Project>

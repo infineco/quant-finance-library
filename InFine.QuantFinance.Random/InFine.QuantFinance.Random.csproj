@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Random number generators for Monte Carlo that run on host and GPU: MRG32K3A, Philox counter-based, scrambled Sobol, Brownian bridge, plus MKL and cuRAND wrappers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,120 @@
+<Project>
+  <!--
+    Opt-in CUDA generation with Hybridizer, adapted from the pipeline of altimesh/hybridizer-basic-samples
+    (src/Directory.Build.targets): after the build, hybridize the kernel assemblies to CUDA, then compile the generated
+    sources with nvcc into one native satellite that HybRunner.Cuda(...) loads.
+
+    Off by default, so that `dotnet build QuantFinance.sln` and the Linux CI need neither Hybridizer, CUDA nor a GPU:
+
+      dotnet build InFine.QuantFinance.Cuda/InFine.QuantFinance.Cuda.csproj -c Release -p:HybridizeCuda=true
+
+    Requirements (checked by HybridizerCheckPrerequisites): the Hybridizer dotnet tool (`dotnet tool install -g
+    Hybridizer`, 7.6.3 verified on Linux, 7.5.1 on Windows), a CUDA toolkit (nvcc; 13.0 verified), an NVIDIA GPU (the device code is JIT-compiled by
+    nvrtc for the GPU present at build time) and, on Windows, Visual Studio 2022 or later with the C++ workload; on Linux,
+    g++ (build/hybridizer/linux/Dockerfile has everything; docs/verification-linux-cuda.md).
+
+    Inputs set by the importing project:
+      @(HybridizedAssembly)  short names (InFine.QuantFinance.<name>.dll in $(OutDir)), dependencies first: listing an
+                             assembly before one it references makes Hybridizer 7.5 load it twice ("An item with the same
+                             key has already been added").
+      $(CudaSatelliteName)   file name of the satellite, without extension.
+  -->
+
+  <PropertyGroup>
+    <HybridizeCuda Condition="'$(HybridizeCuda)' == ''">false</HybridizeCuda>
+    <HybridizerToolVersion Condition="'$(HybridizerToolVersion)' == ''">7.6.3</HybridizerToolVersion>
+    <_QfUserProfile>$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))</_QfUserProfile>
+    <!--
+      The worker of the global tool, run with `dotnet` directly. The `hybridizer` launcher relays the worker's output and
+      deadlocks once that output is large (the full library writes about 5000 lines): it then sits at 0% CPU forever.
+    -->
+    <HybridizerApplication Condition="'$(HybridizerApplication)' == ''">$(_QfUserProfile)/.dotnet/tools/.store/hybridizer/$(HybridizerToolVersion)/hybridizer/$(HybridizerToolVersion)/tools/net8.0/any/Hybridizer.Application.dll</HybridizerApplication>
+    <HybridizerIncludeDir>$(MSBuildThisFileDirectory)include</HybridizerIncludeDir>
+    <HybridizerBuiltins>$(MSBuildThisFileDirectory)quantfinance.cuda.builtins</HybridizerBuiltins>
+
+    <CUDA_PATH Condition="'$(OS)' != 'Windows_NT' And '$(CUDA_PATH)' == ''">/usr/local/cuda</CUDA_PATH>
+    <!-- CCCL moved under include/cccl in CUDA 13; nvrtc does not add it by itself. -->
+    <CudaCcclIncludeDir Condition="Exists('$(CUDA_PATH)/include/cccl')">$(CUDA_PATH)/include/cccl</CudaCcclIncludeDir>
+    <CudaCcclIncludeDir Condition="'$(CudaCcclIncludeDir)' == ''">$(CUDA_PATH)/include</CudaCcclIncludeDir>
+    <NvccPath Condition="'$(OS)' == 'Windows_NT'">$(CUDA_PATH)\bin\nvcc.exe</NvccPath>
+    <NvccPath Condition="'$(OS)' != 'Windows_NT'">$(CUDA_PATH)/bin/nvcc</NvccPath>
+  </PropertyGroup>
+
+  <Target Name="HybridizerCheckPrerequisites" Condition="'$(HybridizeCuda)' == 'true'">
+    <Error Condition="!Exists('$(HybridizerApplication)')"
+           Text="Hybridizer $(HybridizerToolVersion) not found at $(HybridizerApplication). Install it with `dotnet tool install -g Hybridizer --version $(HybridizerToolVersion)` or set HybridizerApplication to Hybridizer.Application.dll." />
+    <Error Condition="!Exists('$(NvccPath)')" Text="nvcc not found at $(NvccPath). Install a CUDA toolkit or set CUDA_PATH." />
+  </Target>
+
+  <Target Name="DetectCudaVersion" Condition="'$(HybridizeCuda)' == 'true' And '$(CUDAVersion)' == ''" DependsOnTargets="HybridizerCheckPrerequisites">
+    <Exec Command="&quot;$(NvccPath)&quot; --version" ConsoleToMSBuild="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_QfNvccVersion" />
+    </Exec>
+    <PropertyGroup>
+      <CUDAVersion>$([System.Text.RegularExpressions.Regex]::Match('$(_QfNvccVersion)', 'release\s+([0-9]+\.[0-9]+)').Groups[1].Value)</CUDAVersion>
+    </PropertyGroup>
+    <Error Condition="'$(CUDAVersion)' == ''" Text="Could not read the CUDA version from `nvcc --version`; set CUDAVersion." />
+    <Message Importance="High" Text="Hybridizer: CUDA toolkit $(CUDAVersion)" />
+  </Target>
+
+  <Target Name="HybridizeCuda" AfterTargets="Build" Condition="'$(HybridizeCuda)' == 'true'" DependsOnTargets="DetectCudaVersion">
+    <PropertyGroup>
+      <!-- Defined here, not at evaluation: IntermediateOutputPath is set by the SDK after this file is imported. -->
+      <HybridizerWorkDir>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)hybridizer</HybridizerWorkDir>
+      <_QfOutDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutDir)'))</_QfOutDir>
+      <_QfDlls>$(_QfOutDir)Hybridizer.Runtime.CUDAImports.dll</_QfDlls>
+      <_QfDlls>$(_QfDlls);@(HybridizedAssembly->'$(_QfOutDir)InFine.QuantFinance.%(Identity).dll')</_QfDlls>
+      <_QfJitOptions>-I.;-Igen;-I$(HybridizerIncludeDir);-I$(CUDA_PATH)/include;-I$(CudaCcclIncludeDir);--std=c++17;--gpu-architecture=auto;-DNO_EXCEPTION</_QfJitOptions>
+    </PropertyGroup>
+    <!--
+      Start from an empty directory: Hybridizer 7.5 reports nvrtc errors from a hybridizer.stderr file it does not
+      truncate, so a stale one makes a successful run look like the previous failure.
+    -->
+    <RemoveDir Directories="$(HybridizerWorkDir)" />
+    <MakeDir Directories="$(HybridizerWorkDir)" />
+    <Copy SourceFiles="$(HybridizerBuiltins)" DestinationFolder="$(HybridizerWorkDir)" />
+    <Message Importance="High" Text="Hybridizer: generating CUDA for @(HybridizedAssembly->'%(Identity)', ', ')" />
+    <!--
+      The repository builtins come first: Hybridizer keeps the first registration of a method, and they replace entries of
+      the shipped hybridizer.cuda.builtins that do not compile (see quantfinance.cuda.builtins).
+      No relocatable device code: with it the driver's JIT linker rejects the image (cuLinkComplete error 300).
+    -->
+    <Exec WorkingDirectory="$(HybridizerWorkDir)"
+          Command="dotnet &quot;$(HybridizerApplication)&quot; --dll-fullpaths &quot;$(_QfDlls)&quot; --working-directory gen --flavors CUDA --jit-cuda-version $(CUDAVersion) --builtins &quot;quantfinance.cuda.builtins;hybridizer.cuda.builtins&quot; --use-function-pointers --jit-compil-options &quot;$(_QfJitOptions)&quot; --no-telemetry &gt; hybridizer.log 2&gt;&amp;1"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_QfHybridizerExit" />
+    </Exec>
+    <!-- An unreadable builtins file is only a warning for Hybridizer, which then falls back on the shipped one. -->
+    <Error Condition="$([System.IO.File]::ReadAllText('$(HybridizerWorkDir)/hybridizer.log').Contains('failed to load builtin'))"
+           Text="Hybridizer could not read $(HybridizerBuiltins) (invalid XML?); see $(HybridizerWorkDir)/hybridizer.log." />
+    <Error Condition="'$(_QfHybridizerExit)' != '0'"
+           Text="Hybridizer failed (exit $(_QfHybridizerExit)); see $(HybridizerWorkDir)/hybridizer.log (search for 'error' and 'FATAL')." />
+  </Target>
+
+  <Target Name="DetectVisualStudio" Condition="'$(HybridizeCuda)' == 'true' And '$(OS)' == 'Windows_NT'">
+    <Exec Condition="'$(VcVarsAllBat)' == ''"
+          Command="&quot;%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe&quot; -latest -products * -version [17.0,18.0) -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath"
+          ConsoleToMSBuild="true" StandardOutputImportance="Low" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_QfVsPath" />
+    </Exec>
+    <PropertyGroup>
+      <!-- CUDA 13.0's nvcc supports MSVC 2022 (17.x); prefer it when several Visual Studio versions are installed. -->
+      <VcVarsAllBat Condition="'$(VcVarsAllBat)' == '' And '$(_QfVsPath)' != ''">$(_QfVsPath)\VC\Auxiliary\Build\vcvarsall.bat</VcVarsAllBat>
+    </PropertyGroup>
+    <Error Condition="'$(VcVarsAllBat)' == '' Or !Exists('$(VcVarsAllBat)')"
+           Text="Visual Studio 2022 with the C++ tools is required by nvcc (or set VcVarsAllBat to a vcvarsall.bat)." />
+  </Target>
+
+  <Target Name="CompileCudaSatellite" AfterTargets="HybridizeCuda" Condition="'$(HybridizeCuda)' == 'true'" DependsOnTargets="DetectVisualStudio">
+    <PropertyGroup>
+      <_QfSatellite>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutDir)'))$(CudaSatelliteName).dll</_QfSatellite>
+      <!-- Host wrappers only: the device code is the cubin nvrtc already produced, embedded in hybridizer.generated.cpp. -->
+      <_QfNvccArgs>-O3 -std=c++17 --expt-relaxed-constexpr -Xcudafe --diag_suppress=144 -Xcudafe --diag_suppress=177 -Xcudafe --diag_suppress=555 -Xcudafe --diag_suppress=128 -I. -I&quot;$(HybridizerIncludeDir)&quot; gen/hybridizer.generated.cpp gen/hybridizer.wrappers.cu -shared -o &quot;$(_QfSatellite)&quot; -lcuda</_QfNvccArgs>
+      <_QfNvccCommand Condition="'$(OS)' == 'Windows_NT'">call &quot;$(VcVarsAllBat)&quot; x64 &gt;nul &amp;&amp; &quot;$(NvccPath)&quot; -Xcompiler /Zc:preprocessor $(_QfNvccArgs)</_QfNvccCommand>
+      <_QfNvccCommand Condition="'$(OS)' != 'Windows_NT'">&quot;$(NvccPath)&quot; -Xcompiler -fPIC $(_QfNvccArgs)</_QfNvccCommand>
+    </PropertyGroup>
+    <Exec WorkingDirectory="$(HybridizerWorkDir)" Command="$(_QfNvccCommand)" StandardOutputImportance="Low" />
+    <Copy SourceFiles="$(_QfSatellite)" DestinationFolder="$(CudaArtifactsDir)" Condition="'$(CudaArtifactsDir)' != ''" />
+    <Message Importance="High" Text="Hybridizer: CUDA satellite $(_QfSatellite)" />
+  </Target>
+</Project>

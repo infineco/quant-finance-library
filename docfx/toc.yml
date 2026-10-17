@@ -1,0 +1,7 @@
+- name: Guides
+  href: ../docs/
+  homepage: ../docs/architecture.md
+- name: API Reference
+  href: api/
+- name: GitHub
+  href: https://github.com/infineco/quant-finance-library

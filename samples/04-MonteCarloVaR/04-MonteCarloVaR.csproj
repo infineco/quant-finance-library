@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Runnable sample, not shipped: see README.md in this folder.
+    The CPU part needs nothing but the library. The optional GPU part uses the Hybridizer runtime and the CUDA satellite
+    (InFine.QuantFinance_CUDA.dll); the code that touches them is isolated in GpuRunner so that the CPU part still runs on
+    hosts where the runtime does not load (for example arm64 processes).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <RootNamespace>InFine.QuantFinance.Samples</RootNamespace>
+    <QfCudaSatellite>$(MSBuildThisFileDirectory)..\..\artifacts\cuda\InFine.QuantFinance_CUDA.dll</QfCudaSatellite>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+  </ItemGroup>
+
+  <!-- A satellite built with -p:HybridizeCuda=true (see docs/gpu.md) is picked up from artifacts/cuda when present. -->
+  <ItemGroup Condition="Exists('$(QfCudaSatellite)')">
+    <None Include="$(QfCudaSatellite)" Link="InFine.QuantFinance_CUDA.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>

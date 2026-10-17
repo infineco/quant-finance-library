@@ -1,0 +1,54 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "..",
+          "files": [
+            "InFine.QuantFinance.Arithmetic/*.csproj",
+            "InFine.QuantFinance.Numerics/*.csproj",
+            "InFine.QuantFinance.Scheduling/*.csproj",
+            "InFine.QuantFinance.Random/*.csproj",
+            "InFine.QuantFinance.ClosedForm/*.csproj",
+            "InFine.QuantFinance.Models/*.csproj",
+            "InFine.QuantFinance.Payoffs/*.csproj",
+            "InFine.QuantFinance.LongstaffSchwartz/*.csproj",
+            "InFine.QuantFinance.Market/*.csproj",
+            "InFine.QuantFinance.Volatility/*.csproj",
+            "InFine.QuantFinance.Risk/*.csproj",
+            "InFine.QuantFinance.Portfolio/*.csproj",
+            "InFine.QuantFinance.TimeSeries/*.csproj",
+            "InFine.QuantFinance.Backtesting/*.csproj",
+            "InFine.QuantFinance.Excel.Core/*.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "filter": "filterConfig.yml",
+      "properties": { "Configuration": "Release" },
+      "disableGitFeatures": true,
+      "disableDefaultFilter": false
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": ["api/**.yml", "api/index.md"] },
+      { "files": ["toc.yml", "index.md"] },
+      { "src": "../docs", "files": ["**/*.md", "toc.yml"], "dest": "articles" }
+    ],
+    "resource": [
+      { "src": "../docs", "files": ["**/*.png", "**/*.svg", "**/*.jpg"], "dest": "articles" }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "globalMetadata": {
+      "_appTitle": "InFine.QuantFinance",
+      "_appName": "InFine.QuantFinance",
+      "_enableSearch": true,
+      "_disableContribution": true
+    },
+    "markdownEngineProperties": { "alerts": {} },
+    "disableGitFeatures": true
+  }
+}

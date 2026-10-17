@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Vectorised portfolio backtesting without look-ahead: rebalancing engine with costs and turnover, built-in strategies and a parallel stationary block bootstrap.</Description>
+  </PropertyGroup>
+
+  <!--
+    Vectorised portfolio backtesting for buy-side users: an aligned T x N return panel, strategies that see only the
+    past, a rebalancing engine with drift, transaction costs, turnover, cash and leverage tracking, statistics through
+    TimeSeries.PerformanceStatistics, and a stationary block bootstrap that reruns a strategy on many resampled
+    histories in parallel.
+    Host-side, idiomatic C#, except BootstrapKernels.cs: the per-path resampling and constant-mix evaluation core
+    ([Kernel] / [EntryPoint], flat arrays, Philox counter-based random numbers, no allocation, no exceptions). Its
+    cores touch no Hybridizer type, so the host runs them on any machine (arm64 included); only the [EntryPoint]
+    grid-stride loop reads the CUDA thread indices.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Backtesting</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- [Kernel] / [EntryPoint] attributes and the CUDA thread indices of the bootstrap entry point. -->
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Philox4x32-10 counter-based generator for the bootstrap. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Random\InFine.QuantFinance.Random.csproj" />
+    <!-- Covariance estimators (sample, Ledoit-Wolf, EWMA) and returns from prices. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <!-- Risk-parity and mean-variance optimisers behind the built-in strategies. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Portfolio\InFine.QuantFinance.Portfolio.csproj" />
+    <!-- PerformanceStatistics for the statistics of a backtest. -->
+    <ProjectReference Include="..\InFine.QuantFinance.TimeSeries\InFine.QuantFinance.TimeSeries.csproj" />
+  </ItemGroup>
+</Project>

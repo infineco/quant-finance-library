@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Portfolio risk: covariance estimation (sample, EWMA, Ledoit-Wolf), historical and parametric VaR and ES, Monte Carlo VaR by full revaluation and scenario stress tests.</Description>
+  </PropertyGroup>
+
+  <!--
+    Portfolio risk for buy-side users: returns, covariance and correlation estimators (sample, EWMA, Ledoit-Wolf
+    shrinkage) and, built on them, the risk measures of the risk epic. Almost everything is host-side, idiomatic C#
+    (validation by exceptions, allocation).
+    Exception: FullRevaluationKernels.cs holds the kernel layer of the Monte Carlo full-revaluation VaR ([Kernel] /
+    [EntryPoint], flat arrays, no allocation, no exceptions), which is why this project references the Hybridizer
+    runtime and the random generators. The kernel cores take plain int / double / array arguments and touch no
+    Hybridizer type, so the host engine runs them on any machine (including arm64, where the runtime does not load);
+    only the [EntryPoint] grid loop needs the Hybridizer runtime.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Risk</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- [Kernel] / [EntryPoint] attributes and the CUDA thread indices of the full-revaluation entry point. -->
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Normal quantile / density / distribution function, and the Black-Scholes kernels used for revaluation. -->
+    <ProjectReference Include="..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+    <!-- Philox4x32-10 and Sobol kernel cores for the scenario generator. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Random\InFine.QuantFinance.Random.csproj" />
+  </ItemGroup>
+
+</Project>

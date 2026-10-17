@@ -1,0 +1,91 @@
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*~
+
+# --- Claude Code ---
+.claude/worktrees/
+
+# --- Sorties de build .NET ---
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+target/
+artifacts/
+publish/
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
+!**/ThirdParties/**/*.dll
+
+# --- Packages NuGet ---
+packages/
+.nuget/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# --- Tests / couverture / benchmarks ---
+TestResults/
+[Tt]est[Rr]esult*/
+BenchmarkDotNet.Artifacts/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+.coverage/
+
+# --- C++ / CUDA (projets natifs) ---
+*.obj
+*.o
+*.lib
+*.exp
+*.ilk
+*.idb
+*.pch
+*.ipch
+*.tlog
+*.log
+*.cubin
+*.ptx
+*.fatbin
+*.so
+*.dylib
+*.a
+ipch/
+*.VC.db
+*.VC.VC.opendb
+
+# --- Notebooks Jupyter ---
+.ipynb_checkpoints/
+
+# --- Divers ---
+*.tmp
+*.bak
+*.orig
+*.rsuser
+*.cache
+.yakanban/
+
+# --- docfx ---
+docfx/_site/
+docfx/api/

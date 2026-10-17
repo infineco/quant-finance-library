@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/infineco/quant-finance-library/security/advisories/new
+    about: Report security issues privately. Do not open a public issue.
+  - name: Questions and general discussion
+    url: https://github.com/infineco/quant-finance-library/discussions
+    about: Ask how to use the library or discuss design ideas.

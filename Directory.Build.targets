@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    A CUDA satellite built with -p:HybridizeCuda=true (InFine.QuantFinance.Cuda) is copied next to the test and benchmark
+    assemblies, where the GPU tests look for it. Without it the GPU tests are skipped with a reason.
+  -->
+  <PropertyGroup>
+    <QfCudaSatellite>$(MSBuildThisFileDirectory)artifacts\cuda\InFine.QuantFinance_CUDA.dll</QfCudaSatellite>
+  </PropertyGroup>
+  <ItemGroup Condition="('$(IsTestProject)' == 'true' Or '$(MSBuildProjectName)' == 'InFine.QuantFinance.Benchmarks') And Exists('$(QfCudaSatellite)')">
+    <None Include="$(QfCudaSatellite)" Link="InFine.QuantFinance_CUDA.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+</Project>

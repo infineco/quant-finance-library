@@ -1,0 +1,91 @@
+name: GPU
+
+# Nightly proof that the CUDA path still builds and passes on a real GPU.
+# Runs on a self-hosted runner (labels: self-hosted, linux, x64, gpu); see docs/gpu-ci.md.
+#
+# SECURITY: a self-hosted runner executes whatever code the workflow checks out, on the owner's
+# machine. On a public repository that must never include code from a fork. So the only triggers are:
+#   - schedule and workflow_dispatch (only users with write access can dispatch);
+#   - pull_request, and then only when the PR branch lives in THIS repository and a maintainer
+#     (label permission requires write access) has applied the `gpu` label. See the job `if:`.
+# Do not switch this to pull_request_target and do not remove the guard.
+
+on:
+  schedule:
+    - cron: "30 2 * * *" # 02:30 UTC, nightly (runs on the default branch)
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+
+# Two GPU runs must never overlap: one GPU, one runner, and the build compiles for the visible device.
+concurrency:
+  group: gpu-runner
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: qfl-cuda:ci
+
+jobs:
+  gpu-tests:
+    name: CUDA build and tests (self-hosted GPU)
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(github.event.pull_request.labels.*.name, 'gpu'))
+    runs-on: [self-hosted, linux, x64, gpu]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          clean: true
+
+      - name: GPU and Docker information
+        run: |
+          nvidia-smi
+          docker version --format 'docker {{.Server.Version}}'
+          docker run --rm --gpus all ubuntu:24.04 nvidia-smi -L
+
+      # The local daemon cache on the runner host provides the layer cache; unchanged Dockerfile = no rebuild.
+      - name: Build the CUDA image
+        run: docker build -t "$IMAGE" build/hybridizer/linux
+
+      - name: Tool versions
+        run: |
+          docker run --rm --gpus all "$IMAGE" bash -lc \
+            "nvcc --version | tail -n 2; dotnet --list-sdks; dotnet tool list -g"
+
+      - name: Generate the CUDA satellite, build and test
+        run: |
+          set -o pipefail
+          rm -rf TestResults
+          status=0
+          docker run --rm --gpus all -v "$PWD":/work -w /work "$IMAGE" bash -lc '
+            set -euo pipefail
+            dotnet build InFine.QuantFinance.Cuda/InFine.QuantFinance.Cuda.csproj -c Release -p:HybridizeCuda=true
+            dotnet build QuantFinance.sln -c Release
+            dotnet test QuantFinance.sln -c Release --no-build --logger "trx" --results-directory TestResults
+          ' || status=$?
+          # The container runs as root: hand the workspace back so the runner can clean it.
+          docker run --rm -v "$PWD":/work -w /work "$IMAGE" chown -R "$(id -u):$(id -g)" /work || true
+          exit $status
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-test-results
+          path: TestResults
+          if-no-files-found: warn
+
+      - name: Upload CUDA satellite
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cuda-satellite
+          path: artifacts/cuda
+          if-no-files-found: ignore
+          retention-days: 7

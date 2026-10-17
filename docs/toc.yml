@@ -1,0 +1,16 @@
+- name: Architecture
+  href: architecture.md
+- name: GPU execution
+  href: gpu.md
+- name: GPU CI
+  href: gpu-ci.md
+- name: Excel add-in
+  href: excel.md
+- name: Packaging
+  href: packaging.md
+- name: Verification
+  items:
+    - name: Linux and CUDA
+      href: verification-linux-cuda.md
+    - name: Windows and GPU
+      href: verification-windows-gpu.md

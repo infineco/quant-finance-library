@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-latest and windows-latest are x64: the Hybridizer runtime package is AMD64-stamped, so the
+        # Hybridizer-dependent CPU tests actually execute there.
+        # macos-latest is arm64: that package does not load in an arm64 process, so the Hybridizer-dependent
+        # tests ([HybridizerFact]/[NativeFact]/[GpuFact]) are skipped with a reason; everything else runs.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      # Coverage (ubuntu only) injects the coverlet collector into every *.Tests project from a CI-only props file.
+      # Empty elsewhere. The value must be identical on restore, build and test.
+      COVERAGE_PROPS: ${{ matrix.os == 'ubuntu-latest' && format('-p:CustomAfterMicrosoftCommonProps={0}/build/ci/coverage.props', github.workspace) || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the format check can diff against the PR base.
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      # The solution includes the net8.0-windows Excel add-in (EnableWindowsTargeting) and the CUDA satellite;
+      # the latter is inert unless -p:HybridizeCuda=true, so a plain restore/build works on every OS.
+      - name: Restore
+        shell: bash
+        run: dotnet restore QuantFinance.sln $COVERAGE_PROPS
+
+      - name: Build
+        shell: bash
+        run: dotnet build QuantFinance.sln -c Release --no-restore $COVERAGE_PROPS
+
+      - name: Test
+        if: matrix.os != 'ubuntu-latest'
+        run: dotnet test QuantFinance.sln -c Release --no-build --logger trx --results-directory TestResults
+
+      - name: Test with coverage
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: >
+          dotnet test QuantFinance.sln -c Release --no-build $COVERAGE_PROPS
+          --logger trx --results-directory TestResults
+          --collect:"XPlat Code Coverage"
+
+      - name: Generate coverage report
+        if: matrix.os == 'ubuntu-latest' && always()
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
+        with:
+          reports: TestResults/**/coverage.cobertura.xml
+          targetdir: coverage-report
+          reporttypes: HtmlInline;MarkdownSummaryGithub;Cobertura
+          assemblyfilters: -*.Tests;-*.TestSupport
+          title: InFine.QuantFinance coverage
+
+      - name: Coverage summary
+        if: matrix.os == 'ubuntu-latest' && always()
+        shell: bash
+        run: |
+          if [ -f coverage-report/SummaryGithub.md ]; then
+            cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage report
+        if: matrix.os == 'ubuntu-latest' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
+          if-no-files-found: warn
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults
+          if-no-files-found: warn
+
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore QuantFinance.sln
+
+      # Scope is deliberately narrow so the check can be enabled without reformatting the whole repository:
+      #  - code style and analyzer diagnostics at severity "error" are verified on the whole solution (clean today);
+      #  - whitespace is verified only on the C# files a pull request touches (the tree still has older files
+      #    that predate the check). Widen to the whole solution once those are reformatted.
+      - name: Style and analyzers (whole solution)
+        run: |
+          dotnet format style QuantFinance.sln --verify-no-changes --severity error --no-restore
+          dotnet format analyzers QuantFinance.sln --verify-no-changes --severity error --no-restore
+
+      - name: Whitespace (files changed by the pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- '*.cs')
+          if [ -z "$files" ]; then
+            echo "No C# files changed."
+            exit 0
+          fi
+          # shellcheck disable=SC2086
+          dotnet format whitespace QuantFinance.sln --verify-no-changes --no-restore --include $files

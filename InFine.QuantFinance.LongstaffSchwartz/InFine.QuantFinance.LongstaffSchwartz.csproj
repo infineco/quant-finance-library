@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Longstaff-Schwartz least-squares Monte Carlo pricing of American options, written once for host and Hybridizer executors.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Models\InFine.QuantFinance.Models.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Payoffs\InFine.QuantFinance.Payoffs.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Scheduling\InFine.QuantFinance.Scheduling.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Everything behind the Excel functions: argument coercion from Excel-like values, the object cache, and
+    the function implementations returning plain values, arrays or error sentinels. Cross-platform and free of
+    any Excel-DNA reference so it builds and is tested on every OS; InFine.QuantFinance.Excel is the thin
+    Windows-only shim that exposes it to Excel.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>InFine.QuantFinance.Excel.Core</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Market\InFine.QuantFinance.Market.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Volatility\InFine.QuantFinance.Volatility.csproj" />
+  </ItemGroup>
+
+</Project>

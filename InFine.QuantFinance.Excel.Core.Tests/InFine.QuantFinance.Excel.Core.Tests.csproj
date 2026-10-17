@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <!-- Opens the example workbooks of samples/excel (SampleWorkbookTests). -->
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Excel.Core\InFine.QuantFinance.Excel.Core.csproj" />
+    <!-- The generator of the example workbooks: a test regenerates them and compares with the committed files. -->
+    <ProjectReference Include="..\tools\InFine.QuantFinance.ExcelSamples\InFine.QuantFinance.ExcelSamples.csproj" />
+  </ItemGroup>
+
+</Project>

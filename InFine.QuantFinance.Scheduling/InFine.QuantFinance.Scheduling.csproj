@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Parallel executors, aligned loop indices and reductions that let one C# loop run sequentially, multi-threaded or as a CUDA kernel through Hybridizer.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+</Project>

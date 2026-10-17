@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Time series for portfolio analytics: performance statistics (Sharpe, drawdown and others), GARCH(1,1) estimation and forecasts, factor regression and factor covariance models.</Description>
+  </PropertyGroup>
+
+  <!--
+    Return-series analytics for buy-side users: performance statistics (annualised return, Sharpe, Sortino, drawdowns,
+    rolling windows) and GARCH(1,1) volatility models with maximum-likelihood estimation, forecasts and simulation.
+    Host-side, idiomatic C# (exceptions, allocation); builds on Risk (returns from prices, historical VaR / ES) and
+    Numerics (BFGS, finite-difference Hessian, Cholesky).
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.TimeSeries</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+  </ItemGroup>
+</Project>

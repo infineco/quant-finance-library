@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Corrections of the hybridizer.cuda.builtins shipped with Hybridizer 7.5.1. Pass this file FIRST in the
+  builtins option ("quantfinance.cuda.builtins;hybridizer.cuda.builtins"): Hybridizer keeps the first registration of a method
+  and ignores later ones ("already registered, ignoring"); listed after the shipped file it has no effect.
+
+  - System.Double.IsInfinity is mapped to hybridizer::is_infinity, which the CUDA headers of 7.5.1 do not define
+    (nvrtc: namespace "hybridizer" has no member "is_infinity"); used by HestonKernels (Cplx.Abs) and
+    ImpliedVolatilityKernels. IsNaN and IsFinite are mapped to the CUDA math library too, for consistency.
+  - Not corrected because no kernel calls it: System.Double.IsNegativeInfinity is mapped to hybridizer::is_even_integer,
+    a wrong function. Add an entry here before using it in device code.
+-->
+<BuiltInConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Functions>
+    <BuiltInFunction DeclaringType="System.Double" MethodName="IsInfinity"><MethodParameters><string>System.Double</string></MethodParameters><IntrinsicFunction><Name>isinf</Name></IntrinsicFunction></BuiltInFunction>
+    <BuiltInFunction DeclaringType="System.Double" MethodName="IsNaN"><MethodParameters><string>System.Double</string></MethodParameters><IntrinsicFunction><Name>isnan</Name></IntrinsicFunction></BuiltInFunction>
+    <BuiltInFunction DeclaringType="System.Double" MethodName="IsFinite"><MethodParameters><string>System.Double</string></MethodParameters><IntrinsicFunction><Name>isfinite</Name></IntrinsicFunction></BuiltInFunction>
+  </Functions>
+</BuiltInConfiguration>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The Excel add-in: a thin Excel-DNA shim over InFine.QuantFinance.Excel.Core. It only declares the worksheet functions
+    (names, help text) and maps Core's error sentinels to Excel errors; all logic and all tests live in the Core.
+
+    The project builds on every OS (EnableWindowsTargeting; Excel-DNA's pack step is managed code), so
+    `dotnet build QuantFinance.sln` works on Linux and macOS and produces the .xll files. They can only be loaded
+    by Excel on Windows. Output: bin/<Configuration>/net8.0-windows/publish/InFine.QuantFinance.Excel-AddIn64-packed.xll
+    is the single-file add-in to distribute.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>InFine.QuantFinance.Excel</RootNamespace>
+    <ExcelAddInName>InFine QuantFinance</ExcelAddInName>
+    <!-- Excel 64-bit only: the library and the Hybridizer runtime are x64 (AnyCPU managed code). -->
+    <ExcelDnaCreate32BitAddIn>false</ExcelDnaCreate32BitAddIn>
+    <ExcelDnaCreate64BitAddIn>true</ExcelDnaCreate64BitAddIn>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExcelDna.AddIn" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Excel.Core\InFine.QuantFinance.Excel.Core.csproj" />
+  </ItemGroup>
+
+</Project>

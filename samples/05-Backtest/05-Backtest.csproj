@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runnable sample, not shipped: see README.md in this folder. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <RootNamespace>InFine.QuantFinance.Samples</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\InFine.QuantFinance.Backtesting\InFine.QuantFinance.Backtesting.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Portfolio\InFine.QuantFinance.Portfolio.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+    <ProjectReference Include="..\..\InFine.QuantFinance.TimeSeries\InFine.QuantFinance.TimeSeries.csproj" />
+  </ItemGroup>
+
+</Project>

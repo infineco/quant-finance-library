@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    CI-only: gives every *.Tests project the coverlet VSTest data collector without adding it to the shared
+    package files. Injected with  -p:CustomAfterMicrosoftCommonProps=<repo>/build/ci/coverage.props  on the
+    restore, build and test commands of the coverage job (the property must be identical on all three).
+  -->
+  <ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

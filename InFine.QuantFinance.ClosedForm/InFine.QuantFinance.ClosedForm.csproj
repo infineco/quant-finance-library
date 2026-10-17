@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Closed-form option pricing and Greeks: Black-Scholes-Merton, Black-76, implied volatility, barrier, Asian and lookback options, Heston, Hull-White bond options and swaptions, multi-asset options, with kernel and dual-number variants.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Scheduling\InFine.QuantFinance.Scheduling.csproj" />
+    <!-- Host-side calibration (HestonCalibrator) uses the Levenberg-Marquardt solver. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+    <!-- Dual-number (tangent-mode AD) variants of the normal distribution and Black-Scholes. -->
+    <ProjectReference Include="..\InFine.QuantFinance.Arithmetic\InFine.QuantFinance.Arithmetic.csproj" />
+  </ItemGroup>
+
+</Project>

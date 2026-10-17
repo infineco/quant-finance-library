@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Implied-volatility surfaces: SVI and SSVI slices and surfaces with arbitrage checks and calibration to market smiles.</Description>
+  </PropertyGroup>
+
+  <!--
+    Host-side implied-volatility surfaces: SVI slices, SSVI surfaces, their calibration and static-arbitrage checks.
+    Idiomatic C# (validation by exceptions, allocation); nothing here runs in a kernel. A surface is compiled to
+    arrays on the host if a kernel ever needs it.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Volatility</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.ClosedForm\InFine.QuantFinance.ClosedForm.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Market\InFine.QuantFinance.Market.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+  </ItemGroup>
+
+</Project>

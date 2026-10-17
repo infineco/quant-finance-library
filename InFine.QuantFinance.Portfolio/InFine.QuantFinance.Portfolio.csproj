@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Portfolio construction: risk parity and risk budgeting, mean-variance optimisation with constraints, efficient frontier and Black-Litterman.</Description>
+  </PropertyGroup>
+
+  <!--
+    Portfolio construction for buy-side users: constrained mean-variance optimisation, risk budgeting /
+    risk parity and Black-Litterman. Host-side, idiomatic C#; builds on the covariance estimators of Risk
+    and the linear algebra of Numerics.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>InFine.QuantFinance.Portfolio</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Numerics\InFine.QuantFinance.Numerics.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Risk\InFine.QuantFinance.Risk.csproj" />
+  </ItemGroup>
+</Project>

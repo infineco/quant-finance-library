@@ -1,0 +1,9 @@
+# Default owners for everything in the repository.
+# Replace by a maintainers team (e.g. @infineco/quant-finance-maintainers) once the team exists with write access.
+*                                   @aramponi
+
+# Build, CI and packaging files are reviewed by the same team.
+/.github/                           @aramponi
+/build/                             @aramponi
+/Directory.*.props                  @aramponi
+/global.json                        @aramponi

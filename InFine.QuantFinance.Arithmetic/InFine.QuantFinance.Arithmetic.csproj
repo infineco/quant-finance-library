@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Kernel-compatible forward-mode automatic differentiation: dual numbers (Dual, Dual4) that give first-order sensitivities of any pricing code in one pass.</Description>
+  </PropertyGroup>
+
+</Project>

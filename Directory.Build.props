@@ -1,0 +1,85 @@
+<Project>
+  <!--
+    Shared settings for every SDK-style project of the library.
+    Old-style csproj files, if any, are left untouched by the condition.
+  -->
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true'">
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <!--
+      Hybridizer.Runtime.CUDAImports 3.7.1 ships an IL-only assembly stamped AMD64 (PE32+).
+      CoreCLR loads it in x64 processes only; in an arm64 process (Apple Silicon) it throws
+      FileLoadException. The library itself stays AnyCPU so it builds everywhere and code that
+      does not touch Hybridizer types still runs natively on arm64; forcing x64 would buy nothing
+      on hosts without an x64 .NET runtime.
+    -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Authors>In Fine</Authors>
+    <Company>In Fine</Company>
+    <Product>InFine.QuantFinance</Product>
+  </PropertyGroup>
+
+  <!--
+    NuGet packaging (docs/packaging.md). Only the libraries listed here are packed; every other project (tests,
+    benchmarks, tools, samples, the CUDA satellite, the Excel add-in and its Excel.Core logic) is not packable, so a
+    new project never ships by accident. A project is packable by being in this list, not by a property in its csproj,
+    because MSBuild evaluates this file before the project body and the shared metadata below depends on the answer.
+  -->
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true'">
+    <QfPackableProjects>;InFine.QuantFinance.Arithmetic;InFine.QuantFinance.Scheduling;InFine.QuantFinance.Numerics;InFine.QuantFinance.Random;InFine.QuantFinance.ClosedForm;InFine.QuantFinance.Models;InFine.QuantFinance.Payoffs;InFine.QuantFinance.LongstaffSchwartz;InFine.QuantFinance.Market;InFine.QuantFinance.Volatility;InFine.QuantFinance.Risk;InFine.QuantFinance.Portfolio;InFine.QuantFinance.TimeSeries;InFine.QuantFinance.Backtesting;</QfPackableProjects>
+    <QfPackable Condition="$(QfPackableProjects.Contains(';$(MSBuildProjectName);'))">true</QfPackable>
+    <IsPackable>false</IsPackable>
+    <IsPackable Condition="'$(QfPackable)' == 'true'">true</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(QfPackable)' == 'true'">
+    <Copyright>Copyright (c) In Fine</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/infineco/quant-finance-library</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/infineco/quant-finance-library</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>quant;quantitative-finance;derivatives;risk;monte-carlo;gpu;cuda;hybridizer;csharp;dotnet</PackageTags>
+    <PackageReleaseNotes>https://github.com/infineco/quant-finance-library/blob/main/CHANGELOG.md</PackageReleaseNotes>
+
+    <!--
+      The XML documentation file ships with the package. Warnings about documentation that is MISSING are not
+      enforced: CS1591 (public member without a comment), CS1573 (some parameters documented, others not) and CS1712
+      (type parameter without a tag). The public surface is large and mostly documented in docs/architecture.md and the
+      type remarks; completing every tag is a follow-up (docs ticket), not a release blocker. Warnings about documentation
+      that is WRONG (CS1570 malformed XML, CS1572 unknown parameter, CS1574 unresolvable cref, ...) stay errors through
+      TreatWarningsAsErrors.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573;CS1712</NoWarn>
+
+    <!-- Symbols travel in a separate .snupkg; SourceLink maps them to the exact commit on GitHub. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Versions come from git tags (MinVer): v0.1.0 gives 0.1.0, untagged commits give 0.1.1-alpha.0.N. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>alpha.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <!-- Deterministic, path-independent output so that CI packages are reproducible; set only on CI (it breaks local debugging). -->
+  <PropertyGroup Condition="'$(QfPackable)' == 'true' And '$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(QfPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)build/package-readme.md" Pack="true" PackagePath="/README.md" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)build/icon.png" Pack="true" PackagePath="/icon.png" Visible="false" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

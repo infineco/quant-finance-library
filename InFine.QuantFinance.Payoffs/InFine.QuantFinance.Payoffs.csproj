@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Monte Carlo payoffs on simulated paths: European, Asian, barrier and lookback options, variance swaps, baskets, worst-of and autocallables, with pathwise and adjoint Greeks.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hybridizer.Runtime.CUDAImports" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InFine.QuantFinance.Models\InFine.QuantFinance.Models.csproj" />
+    <ProjectReference Include="..\InFine.QuantFinance.Scheduling\InFine.QuantFinance.Scheduling.csproj" />
+  </ItemGroup>
+
+</Project>

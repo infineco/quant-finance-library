@@ -1,0 +1,97 @@
+name: Bug report
+description: Report incorrect results, a crash, or a build or test failure
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. For security issues, use the private reporting link instead (see SECURITY.md).
+        For numerical results, a reference value (closed form, published value or finite difference) helps a lot.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: A short C# snippet or failing test that shows the problem.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Expected value and reference
+      description: For numerical issues, the expected value, its source (formula, paper, other library) and the tolerance you consider acceptable.
+  - type: input
+    id: version
+    attributes:
+      label: Library version or commit
+      placeholder: "0.1.0 or a commit hash"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows x64
+        - Linux x64
+        - macOS arm64 (Apple Silicon)
+        - macOS x64 (Intel)
+        - Other (describe in the summary)
+    validations:
+      required: true
+  - type: input
+    id: dotnet
+    attributes:
+      label: .NET SDK version
+      description: Output of `dotnet --version`
+      placeholder: "8.0.100"
+    validations:
+      required: true
+  - type: dropdown
+    id: execution
+    attributes:
+      label: Execution path
+      description: Which path did the bug occur on?
+      options:
+        - Plain .NET (CPU, managed code)
+        - Hybridizer AVX / OMP
+        - Hybridizer CUDA (GPU)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU model and driver (CUDA only)
+      placeholder: "NVIDIA RTX 4090, driver 555.85"
+  - type: input
+    id: cuda
+    attributes:
+      label: CUDA toolkit version (CUDA only)
+      placeholder: "12.4"
+  - type: input
+    id: hybridizer
+    attributes:
+      label: Hybridizer version (Hybridizer paths only)
+      placeholder: "7.6.3"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or stack trace
+      description: Paste the relevant output. It is formatted automatically.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and found no duplicate.
+          required: true
+        - label: I can reproduce the problem with the latest commit of the default branch.

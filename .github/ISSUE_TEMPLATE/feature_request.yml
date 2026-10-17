@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a new model, instrument, API or improvement
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the use case first. Features are accepted when they fit the library's scope
+        (buy-side quantitative finance, C# code that also compiles to GPU kernels).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to compute or build, and what is missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behaviour
+      description: A sketch of the public API, or the mathematical definition if this is a new model or method.
+      render: csharp
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Papers, textbooks or reference implementations that define the expected results.
+  - type: dropdown
+    id: gpu
+    attributes:
+      label: GPU and Hybridizer impact
+      description: Should the feature run in kernels?
+      options:
+        - Not needed (host-only code)
+        - Should be kernel-compatible (no allocation, LINQ, exceptions, boxing or strings)
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and roadmap and found no duplicate.
+          required: true
