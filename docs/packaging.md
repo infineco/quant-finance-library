@@ -69,14 +69,14 @@ build. Closing the missing-documentation gap is a follow-up.
 Versions come from git tags through [MinVer](https://github.com/adamralph/minver); there is no version number in any
 project file.
 
-- The tag prefix is `v`. Tag `v0.1.0` gives version `0.1.0`; `v0.2.0-rc.1` gives the pre-release `0.2.0-rc.1`.
+- The tag prefix is `v`. Tag `v1.15.1` gives version `1.15.1`; `v1.16.0-rc.1` gives the pre-release `1.16.0-rc.1`.
 - A commit after the last tag gets the next patch version as a pre-release, `0.1.1-alpha.0.<height>`, where height is the
   number of commits since the tag. Before any tag exists the version is `0.0.0-alpha.0.<height>`.
 - All packages share the version. MinVer needs the history and the tags: CI checkouts that pack must use
   `fetch-depth: 0` (the release workflow does). A shallow clone without tags gives a meaningless `0.0.0-alpha.0.<n>`.
 - To force a version without tagging (for a local test), pass `-p:MinVerVersionOverride=1.2.3-test`.
-- Policy while the major version is 0: the minor version changes for breaking API changes and for features, the patch
-  version for fixes. From 1.0.0 the rules of [Semantic Versioning](https://semver.org) apply.
+- Versions follow [Semantic Versioning](https://semver.org): the major version changes for breaking API changes, the
+  minor version for features, the patch version for fixes.
 - `ContinuousIntegrationBuild` is switched on by the `GITHUB_ACTIONS` variable, which makes the build deterministic and
   path-independent. A local build does not use it, so a package built on a developer machine is not byte-identical to the
   CI one and should never be published.

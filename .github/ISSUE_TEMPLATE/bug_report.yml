@@ -31,7 +31,7 @@ body:
     id: version
     attributes:
       label: Library version or commit
-      placeholder: "0.1.0 or a commit hash"
+      placeholder: "1.15.1 or a commit hash"
     validations:
       required: true
   - type: dropdown

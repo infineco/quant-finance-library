@@ -2,12 +2,13 @@
 
 ## Supported versions
 
-The library is pre-1.0. Only the latest commit on the `main` branch, and the latest
-published pre-release, receive security fixes. Older versions are not patched; upgrade
-to the latest release instead.
+Only the latest release line (currently 1.15.x) and the latest commit on the `main`
+branch receive security fixes. Older versions are not patched; upgrade to the latest
+release instead.
 
 | Version        | Supported          |
 | -------------- | ------------------ |
+| 1.15.x         | :white_check_mark: |
 | latest `main`  | :white_check_mark: |
 | older versions | :x:                |
 
