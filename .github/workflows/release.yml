@@ -1,12 +1,20 @@
 name: Release
 
 # Pushing a tag vMAJOR.MINOR.PATCH[-prerelease] builds, tests and packs the library, publishes the packages to
-# nuget.org (when the NUGET_API_KEY secret exists) and creates the GitHub Release. The package version is the tag
+# nuget.org through NuGet trusted publishing (when the NUGET_USER variable is set) and creates the GitHub Release. The package version is the tag
 # without the leading "v" (MinVer); see docs/packaging.md.
 on:
   push:
     tags:
       - 'v*'
+  # Re-publish an existing tag to nuget.org (for instance after setting up trusted publishing). It builds the tag with
+  # the workflow of the branch it is started from and skips the GitHub Release, which already exists.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to publish, e.g. v1.15.1
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -27,6 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
           # MinVer reads the tag and counts commits since it: it needs the full history.
           fetch-depth: 0
 
@@ -37,8 +46,10 @@ jobs:
       - name: Check the tag is a version
         id: version
         shell: bash
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
-          tag="${GITHUB_REF_NAME}"
+          tag="${TAG}"
           if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "::error::Tag '$tag' is not of the form vMAJOR.MINOR.PATCH or vMAJOR.MINOR.PATCH-prerelease."
             exit 1
@@ -97,29 +108,44 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      # NuGet trusted publishing: the job's GitHub OIDC token is exchanged for a one-hour nuget.org API key. Nothing
+      # long-lived is stored; the nuget.org policy trusts infineco/quant-finance-library, workflow release.yml.
+      id-token: write
     env:
-      # Secrets cannot be read in an "if:", so the key goes through the environment.
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      # nuget.org profile name (not the e-mail) that owns the trusted-publishing policy: repository variable NUGET_USER.
+      NUGET_USER: ${{ vars.NUGET_USER }}
     steps:
       - name: Skip notice
-        if: env.NUGET_API_KEY == ''
+        if: env.NUGET_USER == ''
         run: |
-          echo "::notice::NUGET_API_KEY is not set, so nothing was pushed to nuget.org. The packages are attached to this run and to the GitHub Release."
+          echo "::notice::The NUGET_USER repository variable is not set, so nothing was pushed to nuget.org. The packages are attached to this run and to the GitHub Release."
 
       - uses: actions/setup-dotnet@v4
-        if: env.NUGET_API_KEY != ''
+        if: env.NUGET_USER != ''
         with:
           dotnet-version: 8.0.x
 
       - uses: actions/download-artifact@v4
-        if: env.NUGET_API_KEY != ''
+        if: env.NUGET_USER != ''
         with:
           name: packages
           path: packages
 
+      # Requested right before the push: the temporary key is valid for one hour.
+      - name: NuGet login (OIDC to temporary API key)
+        if: env.NUGET_USER != ''
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ env.NUGET_USER }}
+
       # Each .nupkg is pushed with its .snupkg symbols next to it. --skip-duplicate makes a re-run of the workflow safe.
       - name: Push packages
-        if: env.NUGET_API_KEY != ''
+        if: env.NUGET_USER != ''
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: >
           dotnet nuget push "packages/*.nupkg"
           --api-key "$NUGET_API_KEY"
@@ -129,6 +155,7 @@ jobs:
   github-release:
     name: Create the GitHub Release
     needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
