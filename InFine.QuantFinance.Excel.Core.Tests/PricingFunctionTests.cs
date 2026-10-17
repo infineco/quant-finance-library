@@ -196,7 +196,9 @@ public class PricingFunctionTests
     [Fact]
     public void VersionAndLastErrorAreStrings()
     {
-        Assert.StartsWith("InFine.QuantFinance 0.", T.Text(_qf.Version()));
+        string version = T.Text(_qf.Version());
+        Assert.StartsWith("InFine.QuantFinance ", version);
+        Assert.True(System.Version.TryParse(version.Substring("InFine.QuantFinance ".Length).Split('-')[0], out _), version);
         _qf.BsPrice("X", S, K, Tau, R, Q, Vol);
         Assert.Contains("option type", T.Text(_qf.LastError()));
     }
