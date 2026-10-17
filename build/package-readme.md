@@ -2,7 +2,7 @@
 
 A C# quantitative-finance library for buy-side quants: pricing, Monte Carlo, risk, portfolio construction,
 time series and backtesting. The same C# code runs on the plain .NET runtime and, compiled through
-[Hybridizer](https://www.altimesh.com/hybridizer-essentials/), on CUDA GPUs.
+[Hybridizer](https://hybridizer.io/), on CUDA GPUs.
 
 ## What you get from this package
 
@@ -13,7 +13,7 @@ version. Each package depends only on the ones it needs, so adding the most spec
 - GPU execution is optional. Kernel code is written so that Hybridizer can translate it to CUDA; the CUDA
   binary is generated from the repository (see the [GPU guide](https://github.com/infineco/quant-finance-library/blob/main/docs/gpu.md)),
   it is not shipped in the packages.
-- The packages reference `Hybridizer.Runtime.CUDAImports`, a managed assembly from Altimesh that provides the
+- The packages reference `Hybridizer.Runtime.CUDAImports`, a managed assembly that provides the
   kernel attributes and thread-index types. It is stamped AMD64: code that touches those types needs an x64
   process, the rest runs anywhere.
 

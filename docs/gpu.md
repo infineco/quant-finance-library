@@ -7,7 +7,7 @@ which limits to expect. All numbers come from the two verification reports,
 ## What runs on the GPU, and how
 
 - The compute kernels are plain C# (closed-form pricers, Heston COS, implied volatility, scenario diffusion, payoffs,
-  full-revaluation VaR, bootstrap backtesting). [Hybridizer](https://www.altimesh.com/hybridizer-essentials/) compiles
+  full-revaluation VaR, bootstrap backtesting). [Hybridizer](https://hybridizer.io/) compiles
   them to CUDA.
 - The result is a native **satellite library**, `InFine.QuantFinance_CUDA.dll` (an ELF shared object on Linux, same
   file name). It is built on demand by the `InFine.QuantFinance.Cuda` project and is not part of the normal build.
@@ -36,8 +36,8 @@ bootstrap, whose results match to the bit).
 ## Hybridizer editions and terms
 
 - The library itself is licensed under **MIT**.
-- Hybridizer is a separate product from Altimesh. Its **community edition is free to use**. For **commercial use,
-  contact the publisher**: <https://www.altimesh.com/hybridizer-essentials/>.
+- Hybridizer is a separate product. Its **community edition is free to use**. For **commercial use,
+  contact the publisher**: <https://hybridizer.io/>.
 - Limits of the community edition, as observed during verification:
   - **CUDA flavour only**: no AVX or OMP binaries, so the AVX/OMP tests stay skipped.
   - **No delegate support**: Longstaff-Schwartz passes host-created delegates to its kernels, so it **cannot run on the
