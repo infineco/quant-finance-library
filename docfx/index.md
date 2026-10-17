@@ -3,7 +3,7 @@
 InFine.QuantFinance is a C# quantitative-finance library: closed-form pricers, Monte Carlo models,
 Longstaff-Schwartz American option pricing, volatility surfaces, risk measures, portfolio analytics,
 time series and backtesting. The numerical core is written once in C# and, through
-[Hybridizer](https://www.altimesh.com/hybridizer-essentials/), the same code is also compiled to CUDA kernels
+[Hybridizer](https://hybridizer.io/), the same code is also compiled to CUDA kernels
 to run on NVIDIA GPUs.
 
 GPU execution uses the Hybridizer Essentials community edition, which is free. For commercial use of the

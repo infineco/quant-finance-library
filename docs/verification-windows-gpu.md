@@ -99,7 +99,7 @@ Backtesting, LongstaffSchwartz), compiles the generated sources with nvcc and pr
 Without the property, the project merely compiles: the ubuntu CI needs neither Hybridizer, nor CUDA, nor a GPU. Duration:
 58 s of generation and nvrtc JIT, then 17 s of nvcc.
 
-The chain follows `altimesh/hybridizer-basic-samples` (`src/Directory.Build.targets`: CUDA version detection through
+The chain follows `hybridizer-io/hybridizer-basic-samples` (`src/Directory.Build.targets`: CUDA version detection through
 `nvcc --version`, `vswhere` then `vcvarsall`, nvcc on `hybridizer.generated.cpp` and `hybridizer.wrappers.cu`). The device
 code is a cubin compiled by nvrtc for **the GPU present at build time** (`--gpu-architecture=auto`), embedded in
 `hybridizer.generated.cpp`. The satellite is therefore not portable from one GPU architecture to another.
