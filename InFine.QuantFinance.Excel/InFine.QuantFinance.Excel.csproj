@@ -17,7 +17,7 @@
     <!-- Excel 64-bit only: the library and the Hybridizer runtime are x64 (AnyCPU managed code). -->
     <ExcelDnaCreate32BitAddIn>false</ExcelDnaCreate32BitAddIn>
     <ExcelDnaCreate64BitAddIn>true</ExcelDnaCreate64BitAddIn>
-    <Version>0.1.0</Version>
+    <Version>1.15.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

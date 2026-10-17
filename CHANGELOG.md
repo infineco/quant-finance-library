@@ -4,11 +4,11 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Versions come from git tags (`vMAJOR.MINOR.PATCH`), see
-[docs/packaging.md](docs/packaging.md). While the major version is 0, the public API may change between minor versions.
+[docs/packaging.md](docs/packaging.md). From 1.0 the public API follows Semantic Versioning.
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-10-17
+## [1.15.1] - 2026-10-17
 
 First public release. The library was extracted from an internal research codebase; this entry
 summarises the feature set by area. Everything runs on plain .NET 8; the Hybridizer paths (CUDA) are optional and are
@@ -69,5 +69,5 @@ described in [docs/gpu.md](docs/gpu.md).
 - AVX / OMP binaries are not produced.
 - XML documentation is incomplete: some public members have no summary and some parameters are undocumented.
 
-[Unreleased]: https://github.com/infineco/quant-finance-library/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/infineco/quant-finance-library/releases/tag/v0.1.0
+[Unreleased]: https://github.com/infineco/quant-finance-library/compare/v1.15.1...HEAD
+[1.15.1]: https://github.com/infineco/quant-finance-library/releases/tag/v1.15.1

@@ -66,7 +66,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-    <!-- Versions come from git tags (MinVer): v0.1.0 gives 0.1.0, untagged commits give 0.1.1-alpha.0.N. -->
+    <!-- Versions come from git tags (MinVer): v1.15.1 gives 1.15.1, untagged commits give 1.15.2-alpha.0.N. -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerDefaultPreReleaseIdentifiers>alpha.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>

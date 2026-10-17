@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>InFine.QuantFinance.Excel.Core</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>1.15.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
