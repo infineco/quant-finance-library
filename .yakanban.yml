@@ -1,0 +1,49 @@
+# yakanban board descriptor — https://github.com/aramponi/yakanban
+# The backend below is the source of truth; this file only pins the vocabulary.
+version: 1
+provider: github
+board:
+    name: quant-finance-library
+statuses:
+    - name: Backlog
+      initial: true
+    - name: Todo
+    - name: In Progress
+      require_claim: true
+    - name: Review
+      require_claim: true
+    - name: Done
+      terminal: true
+priorities:
+    - low
+    - medium
+    - high
+    - critical
+classes:
+    - name: expedite
+      wip_limit: 1
+      bypass_column_wip: true
+    - name: fixed-date
+    - name: standard
+    - name: intangible
+defaults:
+    status: Backlog
+    priority: medium
+    class: standard
+    review: Review
+claim_timeout: 1h0m0s
+cache:
+    enabled: true
+    ttl: 1m0s
+branching:
+    model: trunk-based
+    base: main
+    integration: main
+    templates:
+        branch: '{{.ID}}-{{.Slug}}'
+        worktree: ../{{.Repo}}-task-{{.ID}}
+providers:
+    github:
+        owner: infineco
+        project_number: 3
+        repo: quant-finance-library

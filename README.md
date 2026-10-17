@@ -1,6 +1,6 @@
 # InFine.QuantFinance
 
-**GPU-accelerated quantitative finance in C# — powered by [Hybridizer](https://www.altimesh.com/hybridizer-essentials/).**
+**GPU-accelerated quantitative finance in C# — powered by [Hybridizer](https://www.hybridizer.io/).**
 
 Write a pricer, a risk engine or a backtest once in C#. It runs on the plain .NET runtime, and Hybridizer compiles the
 very same code to CUDA kernels for NVIDIA GPUs.
@@ -9,10 +9,9 @@ very same code to CUDA kernels for NVIDIA GPUs.
 [![CodeQL](https://github.com/infineco/quant-finance-library/actions/workflows/codeql.yml/badge.svg)](https://github.com/infineco/quant-finance-library/actions/workflows/codeql.yml)
 [![GPU (nightly)](https://github.com/infineco/quant-finance-library/actions/workflows/gpu.yml/badge.svg)](docs/gpu-ci.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![NuGet: coming soon](https://img.shields.io/badge/NuGet-coming%20soon-lightgrey)](https://github.com/infineco/quant-finance-library/releases)
+[![NuGet](https://img.shields.io/nuget/v/InFine.QuantFinance.ClosedForm.svg?label=NuGet)](https://www.nuget.org/packages?q=InFine.QuantFinance)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://infineco.github.io/quant-finance-library/)
 
-<!-- Maintainers: replace the NuGet badge with the live shields.io NuGet badge once the packages are on nuget.org. -->
 
 ## Why this library exists
 
@@ -132,9 +131,8 @@ the function reference: [docs/excel.md](docs/excel.md).
 
 Fourteen libraries are packaged as `InFine.QuantFinance.<Name>` (`Arithmetic`, `Scheduling`, `Numerics`, `Random`,
 `ClosedForm`, `Models`, `Payoffs`, `LongstaffSchwartz`, `Market`, `Volatility`, `Risk`, `Portfolio`, `TimeSeries`,
-`Backtesting`), versioned from git tags. The `.nupkg` files of each release are attached to its
-[GitHub release](https://github.com/infineco/quant-finance-library/releases); publication on nuget.org is coming.
-Once there:
+`Backtesting`), versioned from git tags and published on [nuget.org](https://www.nuget.org/packages?q=InFine.QuantFinance) (the
+`.nupkg` files are also attached to each [GitHub release](https://github.com/infineco/quant-finance-library/releases)):
 
 ```sh
 dotnet add package InFine.QuantFinance.ClosedForm
@@ -180,7 +178,7 @@ Pre-1.0: the public API may change between minor versions. Equity-style products
 there is no multi-curve rates, credit or FX coverage. See the [roadmap](ROADMAP.md).
 
 - **Hybridizer community edition.** It is free to use; for commercial use, contact the publisher
-  ([Altimesh](https://www.altimesh.com/hybridizer-essentials/)). Its limits: CUDA only (no AVX or OMP binaries), and no
+  ([Hybridizer](https://hybridizer.io/)). Its limits: CUDA only (no AVX or OMP binaries), and no
   delegate support, so Longstaff-Schwartz runs on the CPU only for now (a functor-based rewrite is planned).
 - **Runtime on arm64.** `Hybridizer.Runtime.CUDAImports` 3.7.1 is stamped AMD64 and does not load in an arm64 process
   (for example Apple Silicon). Code that touches Hybridizer types needs an x64 process; the other code, and the tests
@@ -199,12 +197,12 @@ Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) first. Report
 The library is released under the [MIT licence](LICENSE). Third-party components and their licences:
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Hybridizer is a separate product from Altimesh with its own terms: the community edition is free to use, and commercial
-use requires contacting the publisher (<https://www.altimesh.com/hybridizer-essentials/>).
+Hybridizer is a separate product with its own terms: the community edition is free to use, and commercial
+use requires contacting the publisher (<https://hybridizer.io/>).
 
 ## Acknowledgements
 
-- [Hybridizer](https://www.altimesh.com/hybridizer-essentials/) by Altimesh, which makes the C#-to-CUDA path possible.
+- [Hybridizer](https://hybridizer.io/), which makes the C#-to-CUDA path possible.
 - [Excel-DNA](https://excel-dna.net) for the add-in host, [BenchmarkDotNet](https://benchmarkdotnet.org) for the
   measurements, [MinVer](https://github.com/adamralph/minver) for versioning.
 - The authors of the algorithms the code implements and cites in its documentation, among them Jaeckel ("Let's Be

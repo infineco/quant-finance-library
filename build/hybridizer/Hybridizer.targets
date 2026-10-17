@@ -1,6 +1,6 @@
 <Project>
   <!--
-    Opt-in CUDA generation with Hybridizer, adapted from the pipeline of altimesh/hybridizer-basic-samples
+    Opt-in CUDA generation with Hybridizer, adapted from the pipeline of hybridizer-io/hybridizer-basic-samples
     (src/Directory.Build.targets): after the build, hybridize the kernel assemblies to CUDA, then compile the generated
     sources with nvcc into one native satellite that HybRunner.Cuda(...) loads.
 
