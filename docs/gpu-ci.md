@@ -17,12 +17,14 @@ On the GPU host (Linux x64, NVIDIA driver installed):
    ```
 
    It must list your GPU. If not, fix the toolkit first (`nvidia-ctk runtime configure --runtime=docker`, restart Docker).
-2. In the repository, go to Settings > Actions > Runners > New self-hosted runner (Linux, x64) and follow the
-   download and `config.sh` instructions. When asked for labels, add `gpu` so the runner carries
-   `self-hosted,linux,x64,gpu`:
+2. The workflow uses `runs-on: ubuntu-gpu`, the label of the runners the Hybridizer repositories already use
+   (see `runners/` next to this repository: ephemeral runners registered with `config.sh --ephemeral`). Those runners
+   must be registered for this repository or its organization (`infineco`) and carry the `ubuntu-gpu` label, and the
+   runner group must allow this repository. For a runner dedicated to this repository instead, go to Settings > Actions
+   > Runners > New self-hosted runner (Linux, x64) and pass the label:
 
    ```sh
-   ./config.sh --url https://github.com/<owner>/<repo> --token <token> --labels gpu
+   ./config.sh --url https://github.com/<owner>/<repo> --token <token> --labels ubuntu-gpu
    ```
 3. Run it as a service (`sudo ./svc.sh install && sudo ./svc.sh start`). The runner user must be in the `docker` group.
 
@@ -41,8 +43,8 @@ unless the triggers are strictly controlled. This workflow is:
   applied reruns the job, so only review and label code from trusted contributors.
 
 Additional hardening to apply on the repository: in Settings > Actions > General, set "Fork pull request workflows
-from outside collaborators" to "Require approval for all outside collaborators". Keep the runner out of any runner group
-that other repositories use, give it no secrets, and do not add `pull_request_target` triggers to `gpu.yml`.
+from outside collaborators" to "Require approval for all outside collaborators". Prefer a runner group restricted to the
+repositories you trust, give the runner no secrets, and do not add `pull_request_target` triggers to `gpu.yml`.
 
 ## Trigger a run
 
