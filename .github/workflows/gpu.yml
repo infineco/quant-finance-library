@@ -12,7 +12,13 @@ name: GPU
 
 on:
   schedule:
-    - cron: "30 2 * * *" # 02:30 UTC, nightly (runs on the default branch)
+    # 03:30 UTC, nightly (runs on the default branch). Kept clear of
+    # dragrace-dev/dragrace's performance-slo job (02:17 UTC, 30 min budget):
+    # it pins this same self-hosted box and the machine has a single CUDA card,
+    # so an overlap would both contend for the GPU and skew that job's latency
+    # gates. Concurrency groups are per-repository, so neither workflow can
+    # serialise against the other -- the offset is what keeps them apart.
+    - cron: "30 3 * * *"
   workflow_dispatch:
   pull_request:
     types: [labeled, synchronize, reopened]
