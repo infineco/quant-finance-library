@@ -162,15 +162,21 @@ namespace InFine.QuantFinance.Market
         // ---------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// The accrued interest per 100 of notional at <paramref name="settlement"/>: zero before issue and from maturity on,
-        /// negative between the ex-coupon date and the payment date of a coupon.
+        /// The accrued interest per 100 of notional at <paramref name="settlement"/>: zero before issue and from maturity (or
+        /// the final payment, if earlier) on, negative between the ex-coupon date and the payment date of a coupon, and
+        /// negative too between a payment date that rolled back and the unadjusted end of its period.
         /// </summary>
         public double AccruedInterest(DateOnly settlement)
         {
             var j = AccrualPeriodIndex(settlement);
             if (j < 0) return 0.0;
             var firstUnpaid = FirstUnpaidIndex(settlement);
-            if (firstUnpaid == j && IsExCoupon(j, settlement))
+            // Every coupon has been paid: the final payment rolled back before the unadjusted maturity.
+            if (firstUnpaid < 0) return 0.0;
+            // The coupon of period j does not go to the buyer, so it must not be accrued (the price would lose it twice):
+            // it is ex-coupon, or it was already paid because its payment date rolled back before the unadjusted end of the
+            // period (Preceding, or ModifiedFollowing at a month end). Same treatment in both cases.
+            if (firstUnpaid > j || (firstUnpaid == j && IsExCoupon(j, settlement)))
                 return -100.0 * CouponRate * DayCounter.YearFraction(settlement, _periods[j].UnadjustedEnd, _contexts[j]);
             return 100.0 * CouponRate * DayCounter.YearFraction(_periods[j].UnadjustedStart, settlement, _contexts[j]);
         }

@@ -14,6 +14,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   of a long stub ignored the end-of-month rule (six months before 28 February was 28 August, not 31 August), so a long
   first or last coupon on a month-end schedule had a slightly wrong year fraction. `DayCountContext.EndOfMonth` carries
   the rule; `Schedule` sets it.
+- **Accrued interest of a coupon paid before the end of its period** (`Market`). With a payment date rolled back
+  (Preceding, or ModifiedFollowing at a month end), `FixedRateBond.AccruedInterest` still accrued a coupon already paid
+  to the seller, which made the clean price one coupon too low on those days. It is now minus the days to the end of the
+  period, as for an ex-coupon settlement, and zero once the final payment is made.
 
 ## [1.15.1] - 2026-10-17
 
