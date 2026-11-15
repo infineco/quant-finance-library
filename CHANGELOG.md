@@ -18,6 +18,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   (Preceding, or ModifiedFollowing at a month end), `FixedRateBond.AccruedInterest` still accrued a coupon already paid
   to the seller, which made the clean price one coupon too low on those days. It is now minus the days to the end of the
   period, as for an ex-coupon settlement, and zero once the final payment is made.
+- **BFGS false convergence at the edge of a domain** (`Numerics`). A finite-difference slope that could not be computed
+  was reported as zero, so a start within one step of a non-finite region passed the gradient test at iteration 0. A
+  one-sided difference is now used when one side exists; a start with no finite side is rejected.
 
 ## [1.15.1] - 2026-10-17
 
