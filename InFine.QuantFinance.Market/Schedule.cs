@@ -101,7 +101,7 @@ namespace InFine.QuantFinance.Market
                 refStart = Calendar.Adjust(refStart, Convention);
                 refEnd = Calendar.Adjust(refEnd, refEnd == _unadjusted[^1] ? TerminationConvention : Convention);
             }
-            return context with { RefPeriodStart = refStart, RefPeriodEnd = refEnd, Frequency = frequency };
+            return context with { RefPeriodStart = refStart, RefPeriodEnd = refEnd, Frequency = frequency, EndOfMonth = _endOfMonth };
         }
 
         // Unadjusted ICMA reference period of a period: itself when regular, else the notional regular period adjacent to

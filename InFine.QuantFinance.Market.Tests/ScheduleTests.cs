@@ -270,6 +270,20 @@ public class ScheduleTests
         Assert.Equal(Dates("2024-06-28", "2024-09-30", "2024-12-31", "2025-03-31", "2025-06-30"), schedule.AdjustedDates);
     }
 
+    [Fact]
+    public void IcmaLongStubOnAnEndOfMonthScheduleCountsFromTheMonthEnd()
+    {
+        // Backward semiannual from 28 Feb 2027 with the rule: 31 Aug 2026, 28 Feb 2026, 31 Aug 2025; the long first period
+        // starts on 15 Nov 2024. Its ICMA reference period is 28 Feb -> 31 Aug 2025 and the notional period before that is
+        // 31 Aug 2024 -> 28 Feb 2025 (181 days), of which 15 Nov -> 28 Feb is 105 days. A plain 6-month step back from
+        // 28 Feb would give 28 Aug 2024 and 105 / 368.
+        var schedule = Unadjusted("2024-11-15", "2027-02-28", Frequency.Semiannual).WithEndOfMonth().WithStub(StubPolicy.Long).Build();
+        Assert.Equal(Dates("2024-11-15", "2025-08-31", "2026-02-28", "2026-08-31", "2027-02-28"), schedule.UnadjustedDates);
+        var periods = schedule.GetAccrualPeriods(DayCounter.ActualActualIcma);
+        Assert.Equal(105 / 362.0 + 0.5, periods[0].YearFraction, Tol);
+        Assert.All(periods.Skip(1), p => Assert.Equal(0.5, p.YearFraction, Tol));
+    }
+
     // --- Other rules -----------------------------------------------------------------------------------------------
 
     [Fact]

@@ -202,12 +202,14 @@ namespace InFine.QuantFinance.Market
                 var perYear = (double)frequency.PeriodsPerYear();
 
                 // Notional periods j = ..., -1, 0, 1, ...: period 0 is the reference period; those before/after it
-                // are the same number of months long, anchored on its ends so month-end clamping does not drift.
+                // are the same number of months long, anchored on its ends so month-end clamping does not drift. On an
+                // end-of-month schedule a month-end anchor gives month ends (28 Feb - 6M = 31 Aug), as the schedule does.
+                var endOfMonth = context.EndOfMonth;
                 DateOnly Boundary(int j) =>
                     j == 0 ? refStart :
                     j == 1 ? refEnd :
-                    j > 1 ? refEnd.AddMonths((j - 1) * months) :
-                    refStart.AddMonths(j * months);
+                    j > 1 ? refEnd.AddMonths((j - 1) * months, endOfMonth) :
+                    refStart.AddMonths(j * months, endOfMonth);
 
                 var period = 0;
                 while (start < Boundary(period)) period--;

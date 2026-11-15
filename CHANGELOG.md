@@ -8,6 +8,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+
+- **Actual/Actual ICMA on end-of-month schedules** (`Market`). The notional periods before and after the reference period
+  of a long stub ignored the end-of-month rule (six months before 28 February was 28 August, not 31 August), so a long
+  first or last coupon on a month-end schedule had a slightly wrong year fraction. `DayCountContext.EndOfMonth` carries
+  the rule; `Schedule` sets it.
+
 ## [1.15.1] - 2026-10-17
 
 First public release. The library was extracted from an internal research codebase; this entry
