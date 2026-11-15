@@ -29,9 +29,9 @@ namespace InFine.QuantFinance.Risk.Tests
         {
             double[] pnl = { 1.0, -2.0, -3.5, 0.5, -3.0, -10.0 };
             double[] var = { 3.0, 3.0, 3.0, 3.0, 3.0, 12.0 };
-            Assert.Equal(new[] { false, false, true, false, false, false }, Backtesting.Exceptions(pnl, var)); // -3.0 == VaR is not a breach
-            Assert.Equal(1, Backtesting.CountExceptions(pnl, var));
-            Assert.Equal(3, Backtesting.CountExceptions(pnl, 2.5));   // losses 3.5, 3.0 and 10 exceed 2.5
+            Assert.Equal(new[] { false, false, true, false, false, false }, VarBacktest.Exceptions(pnl, var)); // -3.0 == VaR is not a breach
+            Assert.Equal(1, VarBacktest.CountExceptions(pnl, var));
+            Assert.Equal(3, VarBacktest.CountExceptions(pnl, 2.5));   // losses 3.5, 3.0 and 10 exceed 2.5
         }
 
         // ---- Kupiec -----------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ namespace InFine.QuantFinance.Risk.Tests
         [InlineData(250, 10, 12.955491062356018, 0.0003189845082133834, true)]
         public void KupiecMatchesJorionsNonRejectionRegionsAndIndependentValues(int n, int x, double lr, double p, bool rejects)
         {
-            LikelihoodRatioTest t = Backtesting.KupiecPof(n, x, 0.99);
+            LikelihoodRatioTest t = VarBacktest.KupiecPof(n, x, 0.99);
             Assert.Equal(lr, t.Statistic, 11);
             Assert.Equal(p, t.PValue, 12);
             Assert.Equal(1, t.DegreesOfFreedom);
@@ -66,11 +66,11 @@ namespace InFine.QuantFinance.Risk.Tests
         [Fact]
         public void KupiecIsZeroWhenTheObservedRateEqualsTheExpectedRate()
         {
-            LikelihoodRatioTest t = Backtesting.KupiecPof(500, 5, 0.99);
+            LikelihoodRatioTest t = VarBacktest.KupiecPof(500, 5, 0.99);
             Assert.Equal(0.0, t.Statistic, 12);
             Assert.Equal(1.0, t.PValue, 12);
             // All observations exceptions: LR = -2 n ln(p) at the other boundary.
-            Assert.Equal(-2.0 * 20 * Math.Log(0.05), Backtesting.KupiecPof(20, 20, 0.95).Statistic, 12);
+            Assert.Equal(-2.0 * 20 * Math.Log(0.05), VarBacktest.KupiecPof(20, 20, 0.95).Statistic, 12);
         }
 
         [Fact]
@@ -78,9 +78,9 @@ namespace InFine.QuantFinance.Risk.Tests
         {
             var pnl = new double[250];
             for (int i = 0; i < 250; i++) pnl[i] = (i % 25 == 3) ? -5.0 : 1.0;   // 10 breaches of VaR = 4
-            Assert.Equal(10, Backtesting.CountExceptions(pnl, 4.0));
-            LikelihoodRatioTest a = Backtesting.KupiecPof(Backtesting.Exceptions(pnl, 4.0), 0.99);
-            LikelihoodRatioTest b = Backtesting.KupiecPof(250, 10, 0.99);
+            Assert.Equal(10, VarBacktest.CountExceptions(pnl, 4.0));
+            LikelihoodRatioTest a = VarBacktest.KupiecPof(VarBacktest.Exceptions(pnl, 4.0), 0.99);
+            LikelihoodRatioTest b = VarBacktest.KupiecPof(250, 10, 0.99);
             Assert.Equal(b.Statistic, a.Statistic, 14);
             Assert.Equal(12.955491062356018, a.Statistic, 11);
         }
@@ -99,14 +99,14 @@ namespace InFine.QuantFinance.Risk.Tests
         {
             // 40 days, 7 exceptions; transitions n00 = 27, n01 = 5, n10 = 5, n11 = 2 (counted in Python together with the statistics).
             bool[] ex = Series("0010000110000000100000011000001000000000");
-            LikelihoodRatioTest ind = Backtesting.ChristoffersenIndependence(ex);
+            LikelihoodRatioTest ind = VarBacktest.ChristoffersenIndependence(ex);
             Assert.Equal(0.5946664013542033, ind.Statistic, 11);
             Assert.Equal(0.4406203021846504, ind.PValue, 11);
             Assert.Equal(1, ind.DegreesOfFreedom);
 
-            LikelihoodRatioTest pof = Backtesting.KupiecPof(ex, 0.95);
+            LikelihoodRatioTest pof = VarBacktest.KupiecPof(ex, 0.95);
             Assert.Equal(8.227494073781372, pof.Statistic, 11);
-            LikelihoodRatioTest cc = Backtesting.ChristoffersenConditionalCoverage(ex, 0.95);
+            LikelihoodRatioTest cc = VarBacktest.ChristoffersenConditionalCoverage(ex, 0.95);
             Assert.Equal(2, cc.DegreesOfFreedom);
             Assert.Equal(8.822160475135576, cc.Statistic, 11);
             Assert.Equal(pof.Statistic + ind.Statistic, cc.Statistic, 14);
@@ -125,32 +125,42 @@ namespace InFine.QuantFinance.Risk.Tests
                 spread[10 + 25 * i] = true;
                 clustered[100 + i] = true;
             }
-            Assert.Equal(Backtesting.KupiecPof(spread, 0.96).Statistic, Backtesting.KupiecPof(clustered, 0.96).Statistic, 14);
-            Assert.False(Backtesting.ChristoffersenIndependence(spread).Rejects(0.05));
-            LikelihoodRatioTest c = Backtesting.ChristoffersenIndependence(clustered);
+            Assert.Equal(VarBacktest.KupiecPof(spread, 0.96).Statistic, VarBacktest.KupiecPof(clustered, 0.96).Statistic, 14);
+            Assert.False(VarBacktest.ChristoffersenIndependence(spread).Rejects(0.05));
+            LikelihoodRatioTest c = VarBacktest.ChristoffersenIndependence(clustered);
             Assert.True(c.Rejects(0.001), $"p = {c.PValue}");
         }
 
         [Fact]
         public void IndependenceHandlesDegenerateSeries()
         {
-            LikelihoodRatioTest none = Backtesting.ChristoffersenIndependence(new bool[30]);
+            LikelihoodRatioTest none = VarBacktest.ChristoffersenIndependence(new bool[30]);
             Assert.Equal(0.0, none.Statistic, 15);
             Assert.Equal(1.0, none.PValue, 15);
             var all = new bool[30];
             Array.Fill(all, true);
-            Assert.Equal(0.0, Backtesting.ChristoffersenIndependence(all).Statistic, 15);
+            Assert.Equal(0.0, VarBacktest.ChristoffersenIndependence(all).Statistic, 15);
         }
 
         [Fact]
         public void RejectsBadArguments()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => Backtesting.KupiecPof(0, 0, 0.99));
-            Assert.Throws<ArgumentOutOfRangeException>(() => Backtesting.KupiecPof(10, 11, 0.99));
-            Assert.Throws<ArgumentOutOfRangeException>(() => Backtesting.KupiecPof(10, -1, 0.99));
-            Assert.Throws<ArgumentOutOfRangeException>(() => Backtesting.KupiecPof(10, 1, 1.0));
-            Assert.Throws<ArgumentException>(() => Backtesting.Exceptions(new[] { 1.0, 2.0 }, new[] { 1.0 }));
-            Assert.Throws<ArgumentException>(() => Backtesting.ChristoffersenIndependence(new[] { true }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => VarBacktest.KupiecPof(0, 0, 0.99));
+            Assert.Throws<ArgumentOutOfRangeException>(() => VarBacktest.KupiecPof(10, 11, 0.99));
+            Assert.Throws<ArgumentOutOfRangeException>(() => VarBacktest.KupiecPof(10, -1, 0.99));
+            Assert.Throws<ArgumentOutOfRangeException>(() => VarBacktest.KupiecPof(10, 1, 1.0));
+            Assert.Throws<ArgumentException>(() => VarBacktest.Exceptions(new[] { 1.0, 2.0 }, new[] { 1.0 }));
+            Assert.Throws<ArgumentException>(() => VarBacktest.ChristoffersenIndependence(new[] { true }));
+        }
+
+        [Fact]
+        public void FormerClassNameStillForwards()
+        {
+#pragma warning disable CS0618 // the obsolete name is what this test covers
+            bool[] ex = Risk.Backtesting.Exceptions(new[] { -1.0, -3.0, 2.0 }, 2.0);
+            Assert.Equal(new[] { false, true, false }, ex);
+            Assert.Equal(VarBacktest.KupiecPof(250, 10, 0.99), Risk.Backtesting.KupiecPof(250, 10, 0.99));
+#pragma warning restore CS0618
         }
     }
 }

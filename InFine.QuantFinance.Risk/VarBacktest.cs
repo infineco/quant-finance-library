@@ -22,7 +22,7 @@ namespace InFine.QuantFinance.Risk
     /// independent Bernoulli variables with probability <c>p = 1 - alpha</c>. The tests are asymptotic and have little
     /// power on short samples (a 99% VaR needs years of data to be rejected from too few exceptions).
     /// </remarks>
-    public static class Backtesting
+    public static class VarBacktest
     {
         /// <summary>Exception indicators: element <c>t</c> is true when <c>-pnl[t] &gt; var[t]</c>.</summary>
         /// <param name="pnl">Realised P&amp;L per day (gain positive).</param>
@@ -143,5 +143,41 @@ namespace InFine.QuantFinance.Risk
             double logAlt = Term(n00, 1.0 - pi01) + Term(n01, pi01) + Term(n10, 1.0 - pi11) + Term(n11, pi11);
             return Math.Max(-2.0 * (logNull - logAlt), 0.0);
         }
+    }
+
+    /// <summary>Former name of <see cref="VarBacktest"/>, kept so that existing code compiles.</summary>
+    /// <remarks>
+    /// The name is also that of the namespace <c>InFine.QuantFinance.Backtesting</c> (the backtesting engine): in code that
+    /// references both assemblies from an <c>InFine.QuantFinance.*</c> namespace, <c>Backtesting.KupiecPof(...)</c> resolves
+    /// to the namespace and does not compile.
+    /// </remarks>
+    [Obsolete("Use VarBacktest: this name clashes with the InFine.QuantFinance.Backtesting namespace.")]
+    public static class Backtesting
+    {
+        /// <inheritdoc cref="VarBacktest.Exceptions(double[], double[])"/>
+        public static bool[] Exceptions(double[] pnl, double[] var) => VarBacktest.Exceptions(pnl, var);
+
+        /// <inheritdoc cref="VarBacktest.Exceptions(double[], double)"/>
+        public static bool[] Exceptions(double[] pnl, double var) => VarBacktest.Exceptions(pnl, var);
+
+        /// <inheritdoc cref="VarBacktest.CountExceptions(double[], double[])"/>
+        public static int CountExceptions(double[] pnl, double[] var) => VarBacktest.CountExceptions(pnl, var);
+
+        /// <inheritdoc cref="VarBacktest.CountExceptions(double[], double)"/>
+        public static int CountExceptions(double[] pnl, double var) => VarBacktest.CountExceptions(pnl, var);
+
+        /// <inheritdoc cref="VarBacktest.KupiecPof(int, int, double)"/>
+        public static LikelihoodRatioTest KupiecPof(int observations, int exceptions, double confidence) =>
+            VarBacktest.KupiecPof(observations, exceptions, confidence);
+
+        /// <inheritdoc cref="VarBacktest.KupiecPof(bool[], double)"/>
+        public static LikelihoodRatioTest KupiecPof(bool[] exceptions, double confidence) => VarBacktest.KupiecPof(exceptions, confidence);
+
+        /// <inheritdoc cref="VarBacktest.ChristoffersenIndependence(bool[])"/>
+        public static LikelihoodRatioTest ChristoffersenIndependence(bool[] exceptions) => VarBacktest.ChristoffersenIndependence(exceptions);
+
+        /// <inheritdoc cref="VarBacktest.ChristoffersenConditionalCoverage(bool[], double)"/>
+        public static LikelihoodRatioTest ChristoffersenConditionalCoverage(bool[] exceptions, double confidence) =>
+            VarBacktest.ChristoffersenConditionalCoverage(exceptions, confidence);
     }
 }

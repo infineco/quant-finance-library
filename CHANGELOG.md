@@ -25,6 +25,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   computed. A negative VaR is now allocated like a positive one; a VaR of exactly zero gives NaN marginal and component
   VaR and keeps the ES and incremental figures. `MonteCarloVarResult.Decompose` follows.
 
+### Changed
+
+- **`Risk.Backtesting` is now `Risk.VarBacktest`.** The old name clashed with the `InFine.QuantFinance.Backtesting`
+  namespace and did not resolve in code referencing both packages. `Backtesting` remains as an obsolete forwarder.
+
 ## [1.15.1] - 2026-10-17
 
 First public release. The library was extracted from an internal research codebase; this entry
