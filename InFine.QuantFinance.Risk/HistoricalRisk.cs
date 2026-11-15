@@ -216,7 +216,9 @@ namespace InFine.QuantFinance.Risk
         /// the factor is close to 1 unless the bandwidth is too wide. Estimates are noisy: the effective number of
         /// scenarios near VaR is roughly <c>n h f(VaR)</c>, a handful for a 99% VaR on a few hundred scenarios - widen
         /// the bandwidth or use a larger scenario set. A single-scenario estimate (bandwidth tending to 0) is exact in
-        /// total but extremely noisy. The allocation requires <c>VaR &gt; 0</c> (otherwise <see cref="InvalidOperationException"/>).
+        /// total but extremely noisy. A negative VaR (a gain at the chosen confidence level) is allocated the same way. A VaR
+        /// of exactly zero has no allocation: marginal and component VaR are then NaN, while the ES and incremental figures
+        /// are still returned.
         /// </para>
         /// </remarks>
         public static RiskDecomposition Decompose(double[,] scenarioReturns, double[] positions, double confidence,
@@ -247,32 +249,40 @@ namespace InFine.QuantFinance.Risk
             for (int j = 0; j < n; j++) componentEs[j] = positions[j] * marginalEs[j];
 
             // Component VaR: kernel conditional expectation given L = VaR, rescaled to add up to VaR.
-            if (!(total.Var > 0.0))
-                throw new InvalidOperationException("Component VaR needs a positive VaR (a loss at the chosen confidence level).");
-            double[] k = KernelWeights(loss, w, total.Var, bandwidth);
             var marginalVar = new double[n];
-            double ksum = 0.0;
-            for (int i = 0; i < t; i++)
-            {
-                double ki = k[i];
-                if (ki == 0.0) continue;
-                ksum += ki;
-                for (int j = 0; j < n; j++) marginalVar[j] -= ki * scenarioReturns[i, j];
-            }
-            double implied = 0.0;
-            for (int j = 0; j < n; j++)
-            {
-                marginalVar[j] /= ksum;
-                implied += positions[j] * marginalVar[j];
-            }
-            if (!(implied > 0.0))
-                throw new InvalidOperationException("The kernel neighbourhood of VaR has no net loss; widen the bandwidth.");
-            double scale = total.Var / implied;
             var componentVar = new double[n];
-            for (int j = 0; j < n; j++)
+            if (total.Var == 0.0)
             {
-                marginalVar[j] *= scale;
-                componentVar[j] = positions[j] * marginalVar[j];
+                // Nothing to rescale to: the allocation of a zero VaR is left undefined; ES and incremental risk stand.
+                Array.Fill(marginalVar, double.NaN);
+                Array.Fill(componentVar, double.NaN);
+            }
+            else
+            {
+                double[] k = KernelWeights(loss, w, total.Var, bandwidth);
+                double ksum = 0.0;
+                for (int i = 0; i < t; i++)
+                {
+                    double ki = k[i];
+                    if (ki == 0.0) continue;
+                    ksum += ki;
+                    for (int j = 0; j < n; j++) marginalVar[j] -= ki * scenarioReturns[i, j];
+                }
+                double implied = 0.0;
+                for (int j = 0; j < n; j++)
+                {
+                    marginalVar[j] /= ksum;
+                    implied += positions[j] * marginalVar[j];
+                }
+                // The kernel average of the losses near VaR must have the sign of VaR (a gain when VaR is negative).
+                double scale = total.Var / implied;
+                if (!(scale > 0.0) || !double.IsFinite(scale))
+                    throw new InvalidOperationException("The kernel neighbourhood of VaR has no net loss of the sign of VaR; narrow or widen the bandwidth.");
+                for (int j = 0; j < n; j++)
+                {
+                    marginalVar[j] *= scale;
+                    componentVar[j] = positions[j] * marginalVar[j];
+                }
             }
 
             // Incremental risk: recompute with the position removed.

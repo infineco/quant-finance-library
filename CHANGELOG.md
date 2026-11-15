@@ -21,6 +21,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **BFGS false convergence at the edge of a domain** (`Numerics`). A finite-difference slope that could not be computed
   was reported as zero, so a start within one step of a non-finite region passed the gradient test at iteration 0. A
   one-sided difference is now used when one side exists; a start with no finite side is rejected.
+- **`HistoricalRisk.Decompose` with a non-positive VaR** (`Risk`). It threw and discarded the ES allocation already
+  computed. A negative VaR is now allocated like a positive one; a VaR of exactly zero gives NaN marginal and component
+  VaR and keeps the ES and incremental figures. `MonteCarloVarResult.Decompose` follows.
 
 ## [1.15.1] - 2026-10-17
 

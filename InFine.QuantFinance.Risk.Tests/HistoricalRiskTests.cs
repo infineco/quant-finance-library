@@ -371,10 +371,30 @@ namespace InFine.QuantFinance.Risk.Tests
         }
 
         [Fact]
-        public void ComponentVarNeedsALossAndAKernel()
+        public void NonPositiveVarKeepsTheEsAllocation()
         {
-            var gains = new double[,] { { 0.01 }, { 0.02 }, { 0.03 }, { 0.04 } };
-            Assert.Throws<InvalidOperationException>(() => HistoricalRisk.Decompose(gains, new[] { 1.0 }, 0.75));
+            // Every scenario is a gain, so VaR and ES are negative. The allocation is the same Euler one: with two positions
+            // in the same asset the components are the shares of the totals.
+            var gains = new double[,] { { 0.01, 0.01 }, { 0.02, 0.02 }, { 0.03, 0.03 }, { 0.04, 0.04 } };
+            RiskDecomposition d = HistoricalRisk.Decompose(gains, new[] { 1.0, 3.0 }, 0.75);
+            Assert.True(d.Total.Var < 0.0 && d.Total.ExpectedShortfall < 0.0);
+            Assert.Equal(d.Total.ExpectedShortfall, Sum(d.ComponentEs), 14);
+            Assert.Equal(d.Total.Var, Sum(d.ComponentVar), 14);
+            Assert.Equal(0.25 * d.Total.Var, d.ComponentVar[0], 14);
+            Assert.Equal(0.25 * d.Total.ExpectedShortfall, d.ComponentEs[0], 14);
+
+            // A VaR of exactly zero (no position) has no allocation; the rest of the report is still there.
+            RiskDecomposition flat = HistoricalRisk.Decompose(gains, new[] { 0.0, 0.0 }, 0.75);
+            Assert.Equal(0.0, flat.Total.Var);
+            Assert.All(flat.ComponentVar, c => Assert.True(double.IsNaN(c)));
+            Assert.All(flat.MarginalVar, c => Assert.True(double.IsNaN(c)));
+            Assert.Equal(new[] { 0.0, 0.0 }, flat.ComponentEs);
+            Assert.Equal(new[] { 0.0, 0.0 }, flat.IncrementalVar);
+        }
+
+        [Fact]
+        public void DecomposeRejectsInconsistentArguments()
+        {
             double[,] r = RandomReturns(50, 2, 1);
             Assert.Throws<ArgumentException>(() => HistoricalRisk.Decompose(r, new[] { 1.0, 1.0 }, 0.9, HistoricalRisk.AgeWeights(50, 0.99), QuantileMethod.Linear));
             Assert.Throws<ArgumentOutOfRangeException>(() => HistoricalRisk.Decompose(r, new[] { 1.0, 1.0 }, 0.9, bandwidth: 0.0));
