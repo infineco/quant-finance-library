@@ -46,11 +46,14 @@ that other repositories use, give it no secrets, and do not add `pull_request_ta
 
 ## Trigger a run
 
-- Nightly: automatic at 02:30 UTC on the default branch.
+- Nightly: automatic at 03:30 UTC on the default branch. The hour is chosen to stay clear of another
+  repository's nightly job that targets this same runner at 02:17 UTC.
 - Manually: Actions > GPU > Run workflow, or `gh workflow run gpu.yml`.
 - On a pull request from this repository: add the `gpu` label (create it once under Issues > Labels).
 
-Runs are serialised by a concurrency group, so two GPU runs never overlap.
+Runs are serialised by a concurrency group, so two runs of this workflow never overlap. That group is
+per-repository, so it cannot serialise against workflows in other repositories that target the same
+runner -- the machine has a single CUDA card, and keeping those schedules apart is manual for now.
 
 ## Where results are
 
