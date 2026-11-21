@@ -59,7 +59,7 @@ namespace InFine.QuantFinance.Risk
         /// <summary>Marginal VaR <c>d VaR / d w_i</c>: extra VaR per unit of extra position.</summary>
         public double[] MarginalVar { get; }
 
-        /// <summary>Component VaR <c>w_i d VaR / d w_i</c>; sums to <c>Total.Var</c>.</summary>
+        /// <summary>Component VaR <c>w_i d VaR / d w_i</c>; sums to <c>Total.Var</c>. NaN entries (as for <see cref="MarginalVar"/>) when a historical VaR is exactly zero.</summary>
         public double[] ComponentVar { get; }
 
         /// <summary>Marginal ES <c>d ES / d w_i</c>.</summary>

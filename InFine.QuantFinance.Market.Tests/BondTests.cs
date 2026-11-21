@@ -145,6 +145,36 @@ public class BondTests
         Near(0.0, bond.AccruedInterest(D.Of("2025-12-10")), 1e-13);
     }
 
+    [Fact]
+    public void CouponPaidBeforeItsUnadjustedEndIsNotAccruedAgain()
+    {
+        // 4% semiannual on month ends (30 Nov / 31 May), ModifiedFollowing. 31 May 2025 is a Saturday and Monday is in June,
+        // so that coupon is paid on Friday 30 May, one day before the end of its accrual period (30 Nov 2024 -> 31 May 2025,
+        // 182 days).
+        var schedule = new ScheduleBuilder(D.Of("2024-11-30"), D.Of("2031-05-31"))
+            .WithFrequency(Frequency.Semiannual).WithEndOfMonth().WithConvention(BusinessDayConvention.ModifiedFollowing).Build();
+        var bond = new FixedRateBond(schedule, 0.04);
+        Assert.Equal(D.Of("2025-05-31"), bond.Coupons[0].AccrualEnd);
+        Assert.Equal(D.Of("2025-05-30"), bond.Coupons[0].PaymentDate);
+
+        // Thursday 29 May: the buyer still receives the coupon and pays 180 days of it.
+        var before = D.Of("2025-05-29");
+        Near(2.0 * 180 / 182, bond.AccruedInterest(before), 1e-13);
+        // Friday 30 May: the coupon is paid to the seller. The buyer's first coupon starts accruing on the 31st, one day
+        // later, so the accrued interest is minus one day (as for an ex-coupon settlement), not 181 days of a coupon the
+        // buyer never gets.
+        var paid = D.Of("2025-05-30");
+        Near(-2.0 / 182, bond.AccruedInterest(paid), 1e-13);
+        // The dirty price drops by the coupon and the clean price is continuous across the payment (a par bond: about 100).
+        Near(2.0, bond.DirtyPriceFromYield(0.04, before) - bond.DirtyPriceFromYield(0.04, paid), 0.05);
+        Near(bond.CleanPriceFromYield(0.04, before), bond.CleanPriceFromYield(0.04, paid), 1e-3);
+        Near(100.0, bond.CleanPriceFromYield(0.04, paid), 1e-3);
+
+        // 31 May 2031 is a Saturday too: the principal is paid on Friday 30 May 2031 and nothing accrues from then on.
+        Assert.Equal(D.Of("2031-05-30"), bond.FinalPaymentDate);
+        Assert.Equal(0.0, bond.AccruedInterest(D.Of("2031-05-30")));
+    }
+
     public static TheoryData<string, YieldCompounding> Cases()
     {
         var data = new TheoryData<string, YieldCompounding>();

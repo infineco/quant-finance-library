@@ -48,6 +48,7 @@ namespace InFine.QuantFinance.Numerics
         /// <summary>
         /// Relative step of the central-difference gradient used when none is supplied: <c>x_i</c> is bumped by
         /// <c>step * max(1, |x_i|)</c>. Default eps^(1/3), about 6e-6, which balances truncation and rounding error.
+        /// Where the objective is not finite on one side (the edge of its domain), a one-sided difference is used.
         /// </summary>
         public double FiniteDifferenceStep { get; init; } = 6.0554544523933395e-6;
 
@@ -119,7 +120,11 @@ namespace InFine.QuantFinance.Numerics
     {
         /// <summary>Minimises <paramref name="f"/> from <paramref name="x0"/>.</summary>
         /// <param name="f">Objective.</param>
-        /// <param name="x0">Starting point; the objective must be finite there.</param>
+        /// <param name="x0">
+        /// Starting point; the objective must be finite there and, without an analytic gradient, on at least one side of it
+        /// along every coordinate (within the finite-difference step).
+        /// </param>
+        /// <exception cref="ArgumentException">The objective, or its finite-difference gradient, does not exist at <paramref name="x0"/>.</exception>
         /// <param name="options">Settings; defaults when null.</param>
         /// <param name="gradient">Analytic gradient; central differences when null.</param>
         public static BfgsResult Minimize(ObjectiveFunction f, double[] x0, BfgsOptions? options = null, GradientFunction? gradient = null)
@@ -137,7 +142,8 @@ namespace InFine.QuantFinance.Numerics
             double fx = search.Value(x);
             if (!double.IsFinite(fx)) throw new ArgumentException("The objective is not finite at the starting point.", nameof(x0));
             var g = new double[n];
-            search.Gradient(x, g);
+            if (!search.Gradient(x, fx, g))
+                throw new ArgumentException("The objective is not finite on either side of the starting point along some coordinate, so it has no finite-difference gradient there.", nameof(x0));
             var h = Matrix.Identity(n);
             bool firstUpdate = true;
             int iterations = 0;
@@ -222,9 +228,12 @@ namespace InFine.QuantFinance.Numerics
                 return double.IsNaN(v) ? double.PositiveInfinity : v;
             }
 
-            public void Gradient(double[] x, double[] g)
+            // Gradient at x, where the objective is fx. False when a finite-difference slope does not exist: the objective
+            // is finite on neither side of x along some coordinate. A slope must never be reported as zero in that case,
+            // a zero gradient being the convergence test.
+            public bool Gradient(double[] x, double fx, double[] g)
             {
-                if (_grad != null) { _grad(x, g); return; }
+                if (_grad != null) { _grad(x, g); return true; }
                 Array.Copy(x, _scratch, x.Length);
                 for (int i = 0; i < x.Length; i++)
                 {
@@ -233,9 +242,15 @@ namespace InFine.QuantFinance.Numerics
                     _scratch[i] = xi + h; double fp = Value(_scratch);
                     _scratch[i] = xi - h; double fm = Value(_scratch);
                     _scratch[i] = xi;
-                    // Both sides non-finite makes the slope unusable; report zero and let the line search fail loudly.
-                    g[i] = double.IsFinite(fp) && double.IsFinite(fm) ? (fp - fm) / (2.0 * h) : 0.0;
+                    bool up = double.IsFinite(fp), down = double.IsFinite(fm);
+                    if (up && down) g[i] = (fp - fm) / (2.0 * h);
+                    // Within one step of the edge of the domain only one side exists: the one-sided slope still points
+                    // away from the edge.
+                    else if (up) g[i] = (fp - fx) / h;
+                    else if (down) g[i] = (fx - fm) / h;
+                    else return false;
                 }
+                return true;
             }
 
             // phi(a) = f(x + a p) and phi'(a) = g(x + a p)'p; fills xa and ga.
@@ -244,7 +259,8 @@ namespace InFine.QuantFinance.Numerics
                 for (int i = 0; i < x.Length; i++) xa[i] = x[i] + a * p[i];
                 double v = Value(xa);
                 if (!double.IsFinite(v)) { slope = double.NaN; return double.PositiveInfinity; }
-                Gradient(xa, ga);
+                // No slope at a trial point: as bad as a non-finite value, the search backtracks away from it.
+                if (!Gradient(xa, v, ga)) { slope = double.NaN; return double.PositiveInfinity; }
                 slope = Dot(ga, p);
                 return v;
             }
@@ -314,7 +330,7 @@ namespace InFine.QuantFinance.Numerics
                 if (lo > 0.0 && fLo < f0)
                 {
                     for (int i = 0; i < n; i++) xOut[i] = x[i] + lo * p[i];
-                    Gradient(xOut, gOut);
+                    if (!Gradient(xOut, fLo, gOut)) return false;
                     fOut = fLo;
                     return true;
                 }

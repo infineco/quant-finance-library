@@ -8,6 +8,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+
+- **Actual/Actual ICMA on end-of-month schedules** (`Market`). The notional periods before and after the reference period
+  of a long stub ignored the end-of-month rule (six months before 28 February was 28 August, not 31 August), so a long
+  first or last coupon on a month-end schedule had a slightly wrong year fraction. `DayCountContext.EndOfMonth` carries
+  the rule; `Schedule` sets it.
+- **Accrued interest of a coupon paid before the end of its period** (`Market`). With a payment date rolled back
+  (Preceding, or ModifiedFollowing at a month end), `FixedRateBond.AccruedInterest` still accrued a coupon already paid
+  to the seller, which made the clean price one coupon too low on those days. It is now minus the days to the end of the
+  period, as for an ex-coupon settlement, and zero once the final payment is made.
+- **BFGS false convergence at the edge of a domain** (`Numerics`). A finite-difference slope that could not be computed
+  was reported as zero, so a start within one step of a non-finite region passed the gradient test at iteration 0. A
+  one-sided difference is now used when one side exists; a start with no finite side is rejected.
+- **`HistoricalRisk.Decompose` with a non-positive VaR** (`Risk`). It threw and discarded the ES allocation already
+  computed. A negative VaR is now allocated like a positive one; a VaR of exactly zero gives NaN marginal and component
+  VaR and keeps the ES and incremental figures. `MonteCarloVarResult.Decompose` follows.
+
+### Changed
+
+- **`Risk.Backtesting` is now `Risk.VarBacktest`.** The old name clashed with the `InFine.QuantFinance.Backtesting`
+  namespace and did not resolve in code referencing both packages. `Backtesting` remains as an obsolete forwarder.
+
 ## [1.15.1] - 2026-10-17
 
 First public release. The library was extracted from an internal research codebase; this entry

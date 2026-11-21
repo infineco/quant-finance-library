@@ -72,6 +72,28 @@ namespace InFine.QuantFinance.Numerics.Tests
         }
 
         [Fact]
+        public void StartWithinOneStepOfTheDomainEdgeDoesNotLookConverged()
+        {
+            // Same function, started at 3e-6: the central difference needs f(3e-6 - 6e-6), outside the domain. Reporting a
+            // zero slope there made the start pass the gradient test at iteration 0. The one-sided slope is about -1.8e5.
+            double F(double[] x) => x[0] > 0.0 ? x[0] - Math.Log(x[0]) : double.NaN;
+            var r = Bfgs.Minimize(F, new[] { 3e-6 });
+            Assert.True(r.Converged, r.Status.ToString());
+            Assert.True(r.Iterations > 0);
+            Assert.Equal(1.0, r.X[0], 6);
+        }
+
+        [Fact]
+        public void StartWithoutAFiniteDifferenceGradientIsRejected()
+        {
+            // Finite at the start only: no slope exists, which is an error of the caller, not a minimum.
+            Assert.Throws<ArgumentException>(() => Bfgs.Minimize(x => x[0] == 2.0 ? 0.0 : double.NaN, new[] { 2.0 }));
+            // With an analytic gradient the neighbourhood is not probed.
+            var r = Bfgs.Minimize(x => x[0] * x[0], new[] { 2.0 }, gradient: (x, g) => g[0] = 2.0 * x[0]);
+            Assert.Equal(0.0, r.X[0], 8);
+        }
+
+        [Fact]
         public void StartingPointMustBeFinite()
         {
             Assert.Throws<ArgumentException>(() => Bfgs.Minimize(_ => double.NaN, new[] { 0.0 }));

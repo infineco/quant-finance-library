@@ -23,6 +23,8 @@ namespace InFine.QuantFinance.Market
         private DateOnly? _firstDate;
         private DateOnly? _nextToLastDate;
 
+        private DateOnly GridAnchor => _rule == DateGenerationRule.Backward ? _nextToLastDate ?? _termination : _firstDate ?? _effective;
+
         /// <summary>Starts a schedule running from <paramref name="effectiveDate"/> to <paramref name="terminationDate"/> (unadjusted).</summary>
         public ScheduleBuilder(DateOnly effectiveDate, DateOnly terminationDate)
         {
@@ -121,15 +123,17 @@ namespace InFine.QuantFinance.Market
             for (var i = 0; i < adjusted.Length; i++)
                 adjusted[i] = _calendar.Adjust(unadjusted[i], i == adjusted.Length - 1 ? terminationConvention : _convention);
 
+            // A February boundary can be a month end even on a grid anchored on 28 August.
+            var useMonthEnds = _endOfMonth && GridAnchor.IsEndOfMonth();
             var regular = new bool[unadjusted.Length - 1];
             for (var i = 0; i < regular.Length; i++)
                 regular[i] = _tenor is not { } tenor || _rule == DateGenerationRule.Zero
                     || (i > 0 && i < regular.Length - 1)
-                    || Shift(tenor, _rule, _endOfMonth, unadjusted[i], +1) == unadjusted[i + 1]
-                    || Shift(tenor, _rule, _endOfMonth, unadjusted[i + 1], -1) == unadjusted[i];
+                    || Shift(tenor, _rule, useMonthEnds, unadjusted[i], +1) == unadjusted[i + 1]
+                    || Shift(tenor, _rule, useMonthEnds, unadjusted[i + 1], -1) == unadjusted[i];
 
             var effectiveTenor = _rule == DateGenerationRule.Zero ? null : _tenor;
-            return new Schedule(unadjusted, adjusted, regular, effectiveTenor, _rule, _endOfMonth, _calendar, _convention, terminationConvention);
+            return new Schedule(unadjusted, adjusted, regular, effectiveTenor, _rule, useMonthEnds, _calendar, _convention, terminationConvention);
         }
 
         // The date k steps of the tenor from the anchor. Computed from the anchor rather than by iterating, so that month-end
@@ -187,7 +191,7 @@ namespace InFine.QuantFinance.Market
         // termination date), generated backward from the seed. Returned in increasing order.
         private List<DateOnly> Backward(Period tenor)
         {
-            var seed = _nextToLastDate ?? _termination;
+            var seed = GridAnchor;
             var lower = _firstDate ?? _effective;
             var found = new List<DateOnly>();
             DateOnly candidate;
@@ -205,7 +209,7 @@ namespace InFine.QuantFinance.Market
         // termination date), generated forward from the seed.
         private List<DateOnly> Forward(Period tenor)
         {
-            var seed = _firstDate ?? _effective;
+            var seed = GridAnchor;
             var upper = _nextToLastDate ?? _termination;
             var found = new List<DateOnly>();
             DateOnly candidate;

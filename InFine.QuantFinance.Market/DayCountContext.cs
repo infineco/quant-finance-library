@@ -16,5 +16,14 @@ namespace InFine.QuantFinance.Market
         DateOnly? RefPeriodStart = null,
         DateOnly? RefPeriodEnd = null,
         Frequency? Frequency = null,
-        DateOnly? TerminationDate = null);
+        DateOnly? TerminationDate = null)
+    {
+        /// <summary>
+        /// True when the coupon schedule follows the end-of-month rule (ICMA). The notional periods before and after the
+        /// reference period are then month ends too: six months before 28 February 2025 is 31 August 2024, not the 28th.
+        /// It matters only for an accrual that leaves the reference period (a long stub) on a month-end schedule.
+        /// </summary>
+        // An init-only property, not a positional parameter: the constructor and Deconstruct keep their signatures.
+        public bool EndOfMonth { get; init; }
+    }
 }

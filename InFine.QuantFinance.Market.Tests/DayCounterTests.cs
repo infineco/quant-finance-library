@@ -140,6 +140,25 @@ public class DayCounterTests
     }
 
     [Fact]
+    public void IcmaLongStubOnAnEndOfMonthScheduleUsesMonthEndNotionalPeriods()
+    {
+        // Semiannual month-end schedule (28 Feb / 31 Aug). Long first coupon 15 Nov 2024 -> 31 Aug 2025, reference period
+        // 28 Feb -> 31 Aug 2025 (184 days). The notional period before it runs from 31 Aug 2024, not from 28 Aug:
+        // 15 Nov 2024 -> 28 Feb 2025 = 15 + 31 + 31 + 28 = 105 days of 31 Aug 2024 -> 28 Feb 2025 (181 days).
+        var context = new DayCountContext(D.Of("2025-02-28"), D.Of("2025-08-31"), Frequency.Semiannual) { EndOfMonth = true };
+        Assert.Equal(105 / 362.0 + 0.5, DayCounter.ActualActualIcma.YearFraction(D.Of("2024-11-15"), D.Of("2025-08-31"), context), Tol);
+        // Long last coupon 31 Aug 2025 -> 15 Jun 2026, reference period 31 Aug 2025 -> 28 Feb 2026: the next notional period
+        // ends on 31 Aug 2026 (184 days), and 28 Feb -> 15 Jun 2026 = 31 + 30 + 31 + 15 = 107 days.
+        var last = new DayCountContext(D.Of("2025-08-31"), D.Of("2026-02-28"), Frequency.Semiannual) { EndOfMonth = true };
+        Assert.Equal(0.5 + 107 / 368.0, DayCounter.ActualActualIcma.YearFraction(D.Of("2025-08-31"), D.Of("2026-06-15"), last), Tol);
+
+        // Without the rule the day number is kept: a schedule on the 28th has the notional period 28 Aug 2024 -> 28 Feb 2025
+        // (184 days), and 28 Feb -> 28 Aug 2026 (181 days).
+        Assert.Equal(105 / 368.0 + 0.5,
+            DayCounter.ActualActualIcma.YearFraction(D.Of("2024-11-15"), D.Of("2025-08-28"), D.Of("2025-02-28"), D.Of("2025-08-28"), Frequency.Semiannual), Tol);
+    }
+
+    [Fact]
     public void IcmaRequiresAValidContext()
     {
         var a = D.Of("2025-01-15");
