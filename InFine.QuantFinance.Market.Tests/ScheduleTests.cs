@@ -284,6 +284,36 @@ public class ScheduleTests
         Assert.All(periods.Skip(1), p => Assert.Equal(0.5, p.YearFraction, Tol));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IcmaLongFrontStubKeepsThe28thFromTheBackwardGridAnchor(bool explicitAnchor)
+    {
+        var builder = Unadjusted("2024-11-15", explicitAnchor ? "2027-08-31" : "2027-08-28", Frequency.Semiannual)
+            .WithEndOfMonth().WithStub(StubPolicy.Long);
+        if (explicitAnchor) builder.WithNextToLastDate(D.Of("2027-08-28"));
+
+        // The August anchor is the 28th. The 105 days to 28 Feb 2025 fall in the 184-day period from 28 Aug 2024.
+        var first = builder.Build().GetAccrualPeriods(DayCounter.ActualActualIcma)[0];
+        Assert.Equal(D.Of("2025-08-28"), first.End);
+        Assert.Equal(0.5 + 105 / 368.0, first.YearFraction, Tol);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IcmaLongBackStubKeepsThe28thFromTheForwardGridAnchor(bool explicitAnchor)
+    {
+        var builder = Unadjusted(explicitAnchor ? "2024-07-31" : "2024-08-28", "2026-06-15", Frequency.Semiannual)
+            .WithRule(DateGenerationRule.Forward).WithEndOfMonth().WithStub(StubPolicy.Long);
+        if (explicitAnchor) builder.WithFirstDate(D.Of("2024-08-28"));
+
+        // The 107 days after 28 Feb 2026 fall in the 181-day period ending on 28 Aug 2026.
+        var last = builder.Build().GetAccrualPeriods(DayCounter.ActualActualIcma)[^1];
+        Assert.Equal(D.Of("2025-08-28"), last.Start);
+        Assert.Equal(0.5 + 107 / 362.0, last.YearFraction, Tol);
+    }
+
     // --- Other rules -----------------------------------------------------------------------------------------------
 
     [Fact]
